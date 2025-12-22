@@ -1,0 +1,187 @@
+#!/usr/bin/env python3
+"""
+GNSS Reader - 从串口读取并解析 NMEA 数据
+使用 pyserial 和 pynmea2 库
+"""
+
+import serial
+import pynmea2
+import json
+import sys
+import signal
+from datetime import datetime
+from collections import deque
+from typing import Optional, Dict, Any
+
+# 全局 GNSS 状态字典
+gnss_state: Dict[str, Any] = {
+    "ts_utc": None,          # ISO8601 时间字符串
+    "lat": None,             # 纬度（度）
+    "lon": None,             # 经度（度）
+    "alt_m": None,           # 海拔（米）
+    "speed_knots": None,     # 速度（节）
+    "speed_kmh": None,       # 速度（公里/小时）
+    "track_deg": None,       # 对地航向（度）
+    "fix_quality": None,     # 定位质量（0=无效, 1=GPS, 2=DGPS等）
+    "num_sats": None,        # 卫星数量
+    "hdop": None,            # 水平精度因子
+    "raw": deque(maxlen=20)   # 最近20行 NMEA 字符串
+}
+
+# 串口对象
+ser: Optional[serial.Serial] = None
+
+# 运行标志
+running = True
+
+
+def signal_handler(sig, frame):
+    """处理 Ctrl-C 信号，优雅关闭"""
+    global running, ser
+    print("\n收到中断信号，正在关闭...", file=sys.stderr)
+    running = False
+    if ser and ser.is_open:
+        ser.close()
+        print("串口已关闭", file=sys.stderr)
+    sys.exit(0)
+
+
+def update_from_gga(msg: pynmea2.types.talker.GGA):
+    """从 GGA 消息更新状态"""
+    if msg.latitude is not None and msg.longitude is not None:
+        gnss_state["lat"] = float(msg.latitude)
+        gnss_state["lon"] = float(msg.longitude)
+    
+    if msg.altitude is not None:
+        gnss_state["alt_m"] = float(msg.altitude)
+    
+    if msg.gps_qual is not None:
+        gnss_state["fix_quality"] = int(msg.gps_qual)
+    
+    if msg.num_sats is not None:
+        gnss_state["num_sats"] = int(msg.num_sats)
+    
+    if msg.horizontal_dil is not None:
+        gnss_state["hdop"] = float(msg.horizontal_dil)
+
+
+def update_from_rmc(msg: pynmea2.types.talker.RMC):
+    """从 RMC 消息更新状态"""
+    if msg.latitude is not None and msg.longitude is not None:
+        gnss_state["lat"] = float(msg.latitude)
+        gnss_state["lon"] = float(msg.longitude)
+    
+    if msg.spd_over_grnd is not None:
+        speed_knots = float(msg.spd_over_grnd)
+        gnss_state["speed_knots"] = speed_knots
+        # 转换为公里/小时：1 节 = 1.852 公里/小时
+        gnss_state["speed_kmh"] = speed_knots * 1.852
+    
+    if msg.true_course is not None:
+        gnss_state["track_deg"] = float(msg.true_course)
+    
+    # 更新时间戳（RMC 包含日期和时间）
+    if msg.datetime:
+        try:
+            # 转换为 ISO8601 格式
+            gnss_state["ts_utc"] = msg.datetime.isoformat() + "Z"
+        except Exception:
+            pass
+
+
+def process_nmea_line(line: str):
+    """处理一行 NMEA 数据"""
+    line = line.strip()
+    if not line:
+        return
+    
+    # 保存到原始数据队列
+    gnss_state["raw"].append(line)
+    
+    try:
+        # 解析 NMEA 消息
+        msg = pynmea2.parse(line)
+        
+        # 根据消息类型更新状态
+        if isinstance(msg, pynmea2.types.talker.GGA):
+            update_from_gga(msg)
+        elif isinstance(msg, pynmea2.types.talker.RMC):
+            update_from_rmc(msg)
+        
+        # 打印当前状态（JSON 格式）
+        print(json.dumps(gnss_state, default=str, ensure_ascii=False))
+        sys.stdout.flush()
+        
+    except pynmea2.ParseError as e:
+        # 忽略解析错误，但打印警告
+        print(f"Warning: NMEA parse error: {e}", file=sys.stderr)
+    except Exception as e:
+        # 其他错误也打印警告
+        print(f"Warning: Unexpected error: {e}", file=sys.stderr)
+
+
+def main():
+    """主函数"""
+    global ser, running
+    
+    # 注册信号处理器
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    
+    # 打开串口
+    port = "/dev/ttyAMA0"
+    baudrate = 9600
+    
+    try:
+        ser = serial.Serial(
+            port=port,
+            baudrate=baudrate,
+            bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE,
+            stopbits=serial.STOPBITS_ONE,
+            timeout=1.0
+        )
+        print(f"已打开串口: {port} @ {baudrate} 8N1", file=sys.stderr)
+    except Exception as e:
+        print(f"错误: 无法打开串口 {port}: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    # 读取循环
+    buffer = ""
+    try:
+        while running:
+            if not ser.is_open:
+                break
+            
+            # 读取数据
+            data = ser.read(ser.in_waiting or 1)
+            if not data:
+                continue
+            
+            # 转换为字符串并添加到缓冲区
+            try:
+                buffer += data.decode('ascii', errors='ignore')
+            except Exception:
+                continue
+            
+            # 处理完整的行（以 \r\n 结尾）
+            while '\r\n' in buffer:
+                line, buffer = buffer.split('\r\n', 1)
+                if line:
+                    process_nmea_line(line)
+    
+    except KeyboardInterrupt:
+        # Ctrl-C 已在 signal_handler 中处理
+        pass
+    except Exception as e:
+        print(f"错误: {e}", file=sys.stderr)
+    finally:
+        # 确保关闭串口
+        if ser and ser.is_open:
+            ser.close()
+            print("串口已关闭", file=sys.stderr)
+
+
+if __name__ == "__main__":
+    main()
+

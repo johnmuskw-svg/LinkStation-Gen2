@@ -1,0 +1,58 @@
+{
+  "fix": {
+    "utc": "2025-11-23T05:44:32Z",
+    "date": "2025-11-23",
+    "lat": 31.1800716,
+    "lon": 121.2350653,
+    "alt": 29.4,
+    "fix_quality": 1,
+    "nav_status": "A"
+  },
+  "dop": {
+    "pdop": 2.9,
+    "hdop": 3.82,
+    "vdop": 2.15
+  },
+  "motion": {
+    "speed_kmh": 0.02,
+    "speed_knots": 0.01,
+    "course_deg": 7.17
+  },
+  "satellites": {
+    "in_use": 22,
+    "in_view": 32,
+    "list": [
+      {
+        "prn": 10,
+        "system": "GPS",
+        "elev": 17,
+        "azim": 184,
+        "snr": 35,
+        "used": true
+      },
+      {
+        "prn": 18,
+        "system": "GPS",
+        "elev": 45,
+        "azim": 92,
+        "snr": 42,
+        "used": true
+      },
+      {
+        "prn": 21,
+        "system": "GLONASS",
+        "elev": 23,
+        "azim": 256,
+        "snr": 38,
+        "used": false
+      }
+    ]
+  },
+  "raw": {
+    "nmea": [
+      "$GNGGA,054432.00,3110.8043,N,12114.1039,E,1,22,0.95,29.4,M,,M,,*63",
+      "$GNRMC,054432.00,A,3110.8043,N,12114.1039,E,0.01,7.17,231125,,,A*7A",
+      "$GNGSA,A,3,10,18,21,22,27,30,31,32,14,19,23,28,1.95,1.18,1.45*11"
+    ]
+  }
+}
