@@ -1,0 +1,70 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+*.log.*
+logs/
+*.out
+
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+.cache/
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Large files (keep config but ignore large binaries/docs)
+*.pdf
+*.tgz
+*.tar.gz
+*.zip
+!config/*.json
+
+# Backup directories (keep structure but ignore content)
+modem-api.bak/__pycache__/
+modem-api.bak/.venv/
+modem-api.bak/*.log
+
+# Environment variables (keep .env.example but ignore .env)
+.env
+!.env.example
+
+# Test outputs
+.pytest_cache/
+.coverage
+htmlcov/
+
+# GNSS demo outputs
+gnss-demo/example_output.json
+
+# Uvicorn logs
+/tmp/uvicorn.log
+/tmp/*.log
+
+# Export directories
+/tmp/gen2_export/
