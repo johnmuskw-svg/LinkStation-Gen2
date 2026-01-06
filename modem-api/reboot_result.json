@@ -1,0 +1,1 @@
+{"ok":true,"ts":1763640846292,"action":"reboot","error":null,"raw":null,"detail":{"dry_run":true,"dangerous":true,"executed":false,"blocked_reason":"CTRL_ALLOW_DANGEROUS=0","planned":["AT+CFUN=1,1"],"errors":[],"extra":null}}

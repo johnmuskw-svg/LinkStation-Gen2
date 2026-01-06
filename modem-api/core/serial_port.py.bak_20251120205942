@@ -1,0 +1,145 @@
+# core/serial_port.py
+import logging
+import threading
+import time
+from typing import List
+
+import serial
+
+# 如果你已在 config.py 里有 SERIAL_PORT / BAUDRATE，就沿用：
+from config import SERIAL_PORT, BAUDRATE
+
+# 读写参数：尽量小的块 + 见 OK/ERROR 立即返回
+_READ_CHUNK = 1024             # 每次最多读 1KB
+_READ_TIMEOUT = 0.10           # 串口底层 read 超时（秒）
+_WRITE_TIMEOUT = 0.50          # 写超时（秒）
+_DEFAULT_DEADLINE = 1.20       # 单条 AT 最大等待时间（秒），通常 < 300ms 即返回
+
+_OK_TOKENS = (b"\r\nOK\r\n", b"\nOK\r\n", b"\r\nOK\n")
+_ERR_TOKENS = (b"\r\nERROR", b"\nERROR", b"+CME ERROR", b"+CMS ERROR")
+
+logger = logging.getLogger(__name__)
+
+def _done(buf: bytes) -> bool:
+    if any(tok in buf for tok in _OK_TOKENS):
+        return True
+    if any(tok in buf for tok in _ERR_TOKENS):
+        return True
+    return False
+
+
+class SerialATError(Exception):
+    """Raised when AT 指令执行过程中发生串口或超时异常。"""
+
+class SerialAT:
+    """单例串口 + 互斥，调用 send('AT...') -> List[str]（含原始回显行）"""
+
+    def __init__(self, port: str, baudrate: int):
+        self._device = port
+        self._baudrate = baudrate
+        self._ser = None
+        self._mu = threading.Lock()
+        self._open()
+
+    def _open(self):
+        """打开串口，如果失败则抛出 SerialATError"""
+        try:
+            self._ser = serial.Serial(
+                port=self._device,
+                baudrate=self._baudrate,
+                timeout=_READ_TIMEOUT,
+                write_timeout=_WRITE_TIMEOUT,
+            )
+            logger.info(f"Serial port opened: {self._device} @ {self._baudrate}")
+        except Exception as e:
+            raise SerialATError(f"Failed to open serial port {self._device}: {e}") from e
+
+    def reset(self):
+        """主动重置：关闭当前串口句柄，下次 send 时会重新 _open()"""
+        if self._ser is not None:
+            try:
+                self._ser.close()
+            except Exception:
+                pass
+        self._ser = None
+        logger.info(f"Serial port reset: {self._device}")
+
+    def _read_until_done(self, deadline: float) -> List[str]:
+        """从串口读取直到看到 OK/ERROR 或超时"""
+        if self._ser is None:
+            raise OSError("Serial port not open")
+        t0 = time.time()
+        buf = bytearray()
+        done = False
+        while True:
+            chunk = self._ser.read(_READ_CHUNK)
+            if chunk:
+                buf.extend(chunk)
+                if _done(buf):
+                    done = True
+                    break
+            # 超时保护
+            if time.time() - t0 >= deadline:
+                break
+            if not chunk:
+                time.sleep(0.01)  # 轻微让步，降 CPU
+        if not buf:
+            raise TimeoutError("no response from modem")
+        if not done:
+            raise TimeoutError("AT response incomplete or timed out")
+        # 转行（保留所有原始行）
+        text = buf.decode(errors="ignore")
+        lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
+        # 去掉末尾可能的空行
+        while lines and lines[-1] == "":
+            lines.pop()
+        return lines
+
+    def _execute_at(self, cmd: str, deadline: float) -> List[str]:
+        """内部方法：执行单次 AT 命令（不包含重连逻辑）"""
+        if self._ser is None:
+            self._open()
+        # 清掉历史残留
+        try:
+            self._ser.reset_input_buffer()
+        except Exception:
+            pass
+        # 写入
+        data = (cmd.rstrip() + "\r\n").encode()
+        self._ser.write(data)
+        self._ser.flush()
+        # 读取
+        lines = self._read_until_done(deadline)
+        if not lines:
+            raise SerialATError(f"{cmd} returned empty response")
+        return lines
+
+    def send(self, cmd: str, deadline: float = _DEFAULT_DEADLINE) -> List[str]:
+        """发送一条 AT 并在看到 OK/ERROR 就立刻返回原始回显行
+        
+        如果遇到 I/O 错误，会自动重连一次再重试。
+        """
+        with self._mu:
+            try:
+                return self._execute_at(cmd, deadline)
+            except TimeoutError as exc:
+                # 超时错误不重连，直接抛出
+                raise SerialATError(f"{cmd} timeout: {exc}") from exc
+            except (OSError, IOError, serial.SerialException) as e:
+                # 第一次出现 I/O 错误：先尝试重连一次
+                logger.warning(f"Serial I/O error on {self._device} while executing {cmd}: {e}, attempting reconnect...")
+                self.reset()
+                try:
+                    self._open()
+                except Exception as e2:
+                    raise SerialATError(f"Failed to reopen serial port {self._device}: {e2}") from e
+                # 重连成功后，再尝试发送一遍
+                logger.info(f"Serial port reconnected, retrying {cmd}...")
+                try:
+                    return self._execute_at(cmd, deadline)
+                except Exception as e3:
+                    # 第二次仍失败：抛 SerialATError，让上层统一处理
+                    raise SerialATError(f"Serial I/O error after reopen on {self._device} while executing {cmd}: {e3}") from e3
+
+# 模块级单例，供其它模块直接 import 使用
+serial_at = SerialAT(SERIAL_PORT, BAUDRATE)

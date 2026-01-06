@@ -1,0 +1,4650 @@
+{
+  "metadata": {
+    "source": "Quectel RM520/RG Series AT Commands Manual",
+    "extraction_date": "2024",
+    "total_commands": 78,
+    "grouped_by_api": {
+      "ctrl/reboot": 2,
+      "ctrl/power": 4,
+      "ctrl/config": 29,
+      "ctrl/lock": 4,
+      "ctrl/pdp": 6,
+      "ctrl/file": 2,
+      "ctrl/firmware": 1,
+      "ctrl/reset": 2,
+      "ctrl/gpio": 1,
+      "ctrl/radio": 27
+    }
+  },
+  "commands": [
+    {
+      "cmd": "AT+CFUN",
+      "purpose": "射频开关/模组功能控制（设置功能级别，可重启模组）",
+      "syntax": "AT+CFUN=<fun>[,<rst>]",
+      "params": [
+        {
+          "name": "fun",
+          "type": "int",
+          "values": "0-1,4",
+          "desc": "0=最小功能, 1=全功能, 4=飞行模式"
+        },
+        {
+          "name": "rst",
+          "type": "int",
+          "values": "0-1",
+          "desc": "可选，1=执行后重启模组"
+        }
+      ],
+      "example_request": [
+        "AT+CFUN=1",
+        "AT+CFUN=1,1"
+      ],
+      "example_response": [
+        "OK",
+        "+CME ERROR: 3"
+      ],
+      "blocking": true,
+      "time_to_effect_seconds": 3,
+      "side_effects": "可能重启模组，断开所有连接",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/reboot",
+      "notes": "fun=1,1 会立即重启模组",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QPOWD",
+      "purpose": "模组关机（完全断电）",
+      "syntax": "AT+QPOWD=<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=正常关机, 1=立即关机"
+        }
+      ],
+      "example_request": [
+        "AT+QPOWD=0",
+        "AT+QPOWD=1"
+      ],
+      "example_response": [
+        "OK",
+        "NORMAL POWER DOWN"
+      ],
+      "blocking": true,
+      "time_to_effect_seconds": 2,
+      "side_effects": "模组完全断电，所有功能停止，需外部唤醒",
+      "danger_level": "high",
+      "recommended_api": "ctrl/reboot",
+      "notes": "关机后需外部触发（如 USB 重连）才能唤醒",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QSCLK",
+      "purpose": "睡眠模式控制（进入/退出睡眠）",
+      "syntax": "AT+QSCLK=<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用睡眠, 1=启用睡眠"
+        }
+      ],
+      "example_request": [
+        "AT+QSCLK=1",
+        "AT+QSCLK=0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "启用后模组会在空闲时进入睡眠，降低功耗",
+      "danger_level": "low",
+      "recommended_api": "ctrl/power",
+      "notes": "睡眠模式下响应可能延迟",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"usbspeed\"",
+      "purpose": "设置 USB 速率模式（USB 2.0/3.1 Gen1/Gen2）",
+      "syntax": "AT+QCFG=\"usbspeed\",<speed>",
+      "params": [
+        {
+          "name": "speed",
+          "type": "int",
+          "values": "20,311,312",
+          "desc": "20=USB2.0(480Mbps), 311=USB3.1 Gen1(5Gbps), 312=USB3.1 Gen2(10Gbps)"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"usbspeed\",312",
+        "AT+QCFG=\"usbspeed\",20"
+      ],
+      "example_response": [
+        "OK",
+        "+QCFG: \"usbspeed\",312"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "可能需要重新连接 USB 才能生效",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "某些模式需要硬件支持",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"usbnet\"",
+      "purpose": "设置 USB 网络模式（ECM/RNDIS/NCM）",
+      "syntax": "AT+QCFG=\"usbnet\",<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=ECM, 1=RNDIS, 2=NCM"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"usbnet\",0",
+        "AT+QCFG=\"usbnet\",1"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "可能需要重新连接 USB 或重启驱动",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "不同模式在不同操作系统上兼容性不同",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"band\"",
+      "purpose": "频段锁定配置（锁定到指定 LTE/NR 频段）",
+      "syntax": "AT+QCFG=\"band\",<rat>,<band_list>",
+      "params": [
+        {
+          "name": "rat",
+          "type": "string",
+          "values": "\"LTE\",\"NR5G\"",
+          "desc": "制式类型"
+        },
+        {
+          "name": "band_list",
+          "type": "string",
+          "values": "频段列表，如\"B3,B41\"或\"n41,n78\"",
+          "desc": "要锁定的频段，空字符串表示解锁"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"band\",\"LTE\",\"B3,B41\"",
+        "AT+QCFG=\"band\",\"NR5G\",\"n41\""
+      ],
+      "example_response": [
+        "OK",
+        "+CME ERROR: 100"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "锁定后只能使用指定频段，可能影响网络连接",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/lock",
+      "notes": "频段锁定可能导致无法注册网络，需谨慎使用",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QNWLOCK",
+      "purpose": "网络/制式锁定（锁定到 LTE/5G/WCDMA 等）",
+      "syntax": "AT+QNWLOCK=<mode>,<rat>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=解锁, 1=锁定"
+        },
+        {
+          "name": "rat",
+          "type": "string",
+          "values": "\"LTE\",\"NR5G\",\"WCDMA\"",
+          "desc": "要锁定的制式"
+        }
+      ],
+      "example_request": [
+        "AT+QNWLOCK=1,\"NR5G\"",
+        "AT+QNWLOCK=0"
+      ],
+      "example_response": [
+        "OK",
+        "+CME ERROR: 100"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "锁定后只能使用指定制式，可能导致无法注册",
+      "danger_level": "high",
+      "recommended_api": "ctrl/lock",
+      "notes": "强烈建议提供解锁命令，避免永久锁定",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QNWPREFCFG=\"mode_pref\"",
+      "purpose": "网络搜索模式配置（选择上网模式：AUTO/WCDMA/LTE/NR5G等）",
+      "syntax": "AT+QNWPREFCFG=\"mode_pref\"[=<mode_pref>]",
+      "params": [
+        {
+          "name": "mode_pref",
+          "type": "string",
+          "values": "\"AUTO\",\"WCDMA\",\"LTE\",\"NR5G\"或组合（用冒号分隔，如\"LTE:NR5G\"）",
+          "desc": "网络搜索模式（设置时必需，查询时省略）。AUTO=自动选择WCDMA&LTE&5G, WCDMA=仅WCDMA, LTE=仅LTE, NR5G=仅5G, 可组合如LTE:NR5G"
+        }
+      ],
+      "example_request": [
+        "AT+QNWPREFCFG=\"mode_pref\"",
+        "AT+QNWPREFCFG=\"mode_pref\",AUTO",
+        "AT+QNWPREFCFG=\"mode_pref\",LTE",
+        "AT+QNWPREFCFG=\"mode_pref\",LTE:NR5G"
+      ],
+      "example_response": [
+        "+QNWPREFCFG: \"mode_pref\",AUTO",
+        "OK",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "改变网络搜索模式，可能触发重新搜索网络",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "网络模式选择命令。不带参数时查询当前模式，带参数时设置模式。配置会保存到NVM。这是安全的设置命令，用于选择上网模式。",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QNWPREFCFG=\"lte_band\"",
+      "purpose": "LTE频段偏好配置（设置LTE频段搜索偏好，非锁定）",
+      "syntax": "AT+QNWPREFCFG=\"lte_band\"[=<LTE_band>]",
+      "params": [
+        {
+          "name": "LTE_band",
+          "type": "string",
+          "values": "频段列表，用冒号分隔，如\"1:2:3\"表示B1:B2:B3",
+          "desc": "LTE频段偏好列表（设置时必需，查询时省略）。空字符串表示使用所有支持的频段"
+        }
+      ],
+      "example_request": [
+        "AT+QNWPREFCFG=\"lte_band\"",
+        "AT+QNWPREFCFG=\"lte_band\",1:2:3",
+        "AT+QNWPREFCFG=\"lte_band\",\"\""
+      ],
+      "example_response": [
+        "+QNWPREFCFG: \"lte_band\",1:2:3:4:5:7:8:12:13:14:17:18:19:20:25:26:28:29:30:32:34:38:39:40:41:42:66:71",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "设置LTE频段搜索偏好，模组会优先搜索指定频段",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "频段偏好设置（非锁定）。不带参数时查询当前偏好，带参数时设置偏好。配置会保存到NVM。这是安全的设置命令。",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QNWPREFCFG=\"nsa_nr5g_band\"",
+      "purpose": "5G NSA频段偏好配置（设置5G NSA频段搜索偏好）",
+      "syntax": "AT+QNWPREFCFG=\"nsa_nr5g_band\"[=<NSA_NR5G_band>]",
+      "params": [
+        {
+          "name": "NSA_NR5G_band",
+          "type": "string",
+          "values": "频段列表，用冒号分隔，如\"1:3:41\"表示n1:n3:n41",
+          "desc": "5G NSA频段偏好列表（设置时必需，查询时省略）。空字符串表示使用所有支持的频段"
+        }
+      ],
+      "example_request": [
+        "AT+QNWPREFCFG=\"nsa_nr5g_band\"",
+        "AT+QNWPREFCFG=\"nsa_nr5g_band\",1:3:41",
+        "AT+QNWPREFCFG=\"nsa_nr5g_band\",\"\""
+      ],
+      "example_response": [
+        "+QNWPREFCFG: \"nsa_nr5g_band\",1:3:7:20:28:40:41:71:77:78:79",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "设置5G NSA频段搜索偏好，模组会优先搜索指定频段",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "5G NSA频段偏好设置。不带参数时查询当前偏好，带参数时设置偏好。配置会保存到NVM。这是安全的设置命令。",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QNWPREFCFG=\"nr5g_band\"",
+      "purpose": "5G SA频段偏好配置（设置5G SA频段搜索偏好）",
+      "syntax": "AT+QNWPREFCFG=\"nr5g_band\"[=<SA_NR5G_band>]",
+      "params": [
+        {
+          "name": "SA_NR5G_band",
+          "type": "string",
+          "values": "频段列表，用冒号分隔，如\"1:3:41\"表示n1:n3:n41",
+          "desc": "5G SA频段偏好列表（设置时必需，查询时省略）。空字符串表示使用所有支持的频段"
+        }
+      ],
+      "example_request": [
+        "AT+QNWPREFCFG=\"nr5g_band\"",
+        "AT+QNWPREFCFG=\"nr5g_band\",1:3:41",
+        "AT+QNWPREFCFG=\"nr5g_band\",\"\""
+      ],
+      "example_response": [
+        "+QNWPREFCFG: \"nr5g_band\",1:3:7:20:28:40:41:71:77:78:79",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "设置5G SA频段搜索偏好，模组会优先搜索指定频段",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "5G SA频段偏好设置。不带参数时查询当前偏好，带参数时设置偏好。配置会保存到NVM。这是安全的设置命令。",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"nwscanseq\"",
+      "purpose": "网络扫描序列配置（优先扫描顺序）",
+      "syntax": "AT+QCFG=\"nwscanseq\",<seq>",
+      "params": [
+        {
+          "name": "seq",
+          "type": "string",
+          "values": "\"AUTO\",\"GSM\",\"WCDMA\",\"LTE\",\"NR5G\"",
+          "desc": "扫描优先级序列"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nwscanseq\",\"NR5G_LTE\"",
+        "AT+QCFG=\"nwscanseq\",\"AUTO\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "改变网络搜索优先级，可能影响注册速度",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "AUTO 模式由模组自动选择",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nwscanmode\"",
+      "purpose": "网络扫描模式配置（自动/手动）",
+      "syntax": "AT+QCFG=\"nwscanmode\",<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-3",
+          "desc": "0=自动, 1=手动, 2=去注册, 3=仅搜索"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nwscanmode\",0",
+        "AT+QCFG=\"nwscanmode\",1"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "手动模式需要手动触发注册",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "模式2会断开当前连接",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"roamservice\"",
+      "purpose": "漫游服务配置（启用/禁用漫游）",
+      "syntax": "AT+QCFG=\"roamservice\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用漫游, 1=启用漫游"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"roamservice\",1",
+        "AT+QCFG=\"roamservice\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "禁用漫游后只能在归属网络使用",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "可能影响国际漫游功能",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"iotopmode\"",
+      "purpose": "IoT 操作模式配置（Cat-M/NB-IoT 等）",
+      "syntax": "AT+QCFG=\"iotopmode\",<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-3",
+          "desc": "0=自动, 1=Cat-M, 2=NB-IoT, 3=Cat-M+NB-IoT"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"iotopmode\",1",
+        "AT+QCFG=\"iotopmode\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "改变 IoT 模式可能需要重新注册网络",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/config",
+      "notes": "仅适用于支持 IoT 的模组",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"apn\"",
+      "purpose": "APN 配置（设置默认 APN）",
+      "syntax": "AT+QCFG=\"apn\",<cid>,<apn_name>",
+      "params": [
+        {
+          "name": "cid",
+          "type": "int",
+          "values": "1-15",
+          "desc": "PDP 上下文 ID"
+        },
+        {
+          "name": "apn_name",
+          "type": "string",
+          "values": "APN 名称，如\"cmnet\"",
+          "desc": "APN 字符串"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"apn\",1,\"cmnet\"",
+        "AT+QCFG=\"apn\",1,\"internet\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "需要重新激活 PDP 上下文才能生效",
+      "danger_level": "low",
+      "recommended_api": "ctrl/pdp",
+      "notes": "APN 配置影响数据连接",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+CGDCONT",
+      "purpose": "PDP 上下文定义（设置 APN、IP 类型等）",
+      "syntax": "AT+CGDCONT=<cid>[,<pdp_type>[,<apn>[,<pd_addr>[,<d_comp>[,<h_comp>]]]]]",
+      "params": [
+        {
+          "name": "cid",
+          "type": "int",
+          "values": "1-15",
+          "desc": "上下文标识符"
+        },
+        {
+          "name": "pdp_type",
+          "type": "string",
+          "values": "\"IP\",\"IPV6\",\"IPV4V6\"",
+          "desc": "PDP 类型"
+        },
+        {
+          "name": "apn",
+          "type": "string",
+          "values": "APN 名称",
+          "desc": "接入点名称"
+        },
+        {
+          "name": "pd_addr",
+          "type": "string",
+          "values": "IP 地址（通常为空）",
+          "desc": "PDP 地址"
+        },
+        {
+          "name": "d_comp",
+          "type": "int",
+          "values": "0-2",
+          "desc": "数据压缩"
+        },
+        {
+          "name": "h_comp",
+          "type": "int",
+          "values": "0-2",
+          "desc": "头压缩"
+        }
+      ],
+      "example_request": [
+        "AT+CGDCONT=1,\"IP\",\"cmnet\"",
+        "AT+CGDCONT=1,\"IPV4V6\",\"internet\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "需要配合 AT+CGACT 激活才能使用",
+      "danger_level": "low",
+      "recommended_api": "ctrl/pdp",
+      "notes": "PDP 上下文配置的基础命令",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+CGACT",
+      "purpose": "PDP 上下文激活/去激活",
+      "syntax": "AT+CGACT=<state>[,<cid>[,<cid>[,<cid>...]]]",
+      "params": [
+        {
+          "name": "state",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=去激活, 1=激活"
+        },
+        {
+          "name": "cid",
+          "type": "int",
+          "values": "1-15",
+          "desc": "上下文 ID（可多个）"
+        }
+      ],
+      "example_request": [
+        "AT+CGACT=1,1",
+        "AT+CGACT=0,1"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "激活会建立数据连接，去激活会断开连接",
+      "danger_level": "low",
+      "recommended_api": "ctrl/pdp",
+      "notes": "激活后模组会尝试注册并获取 IP",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QPRTPARA",
+      "purpose": "打印参数设置（控制 URC 输出）",
+      "syntax": "AT+QPRTPARA=<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用详细打印, 1=启用详细打印"
+        }
+      ],
+      "example_request": [
+        "AT+QPRTPARA=1",
+        "AT+QPRTPARA=0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 0,
+      "side_effects": "影响 URC 消息的详细程度",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "主要用于调试",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QFLST",
+      "purpose": "文件列表（列出模组内文件）",
+      "syntax": "AT+QFLST=<path>",
+      "params": [
+        {
+          "name": "path",
+          "type": "string",
+          "values": "文件路径，如\"/\"",
+          "desc": "要列出的目录路径"
+        }
+      ],
+      "example_request": [
+        "AT+QFLST=\"/\"",
+        "AT+QFLST=\"/cert\""
+      ],
+      "example_response": [
+        "+QFLST: ...",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "无",
+      "danger_level": "low",
+      "recommended_api": "ctrl/file",
+      "notes": "查询类，但可能用于文件管理流程",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QFDEL",
+      "purpose": "文件删除（删除模组内文件）",
+      "syntax": "AT+QFDEL=<path>",
+      "params": [
+        {
+          "name": "path",
+          "type": "string",
+          "values": "文件路径",
+          "desc": "要删除的文件路径"
+        }
+      ],
+      "example_request": [
+        "AT+QFDEL=\"/cert/ca.pem\"",
+        "AT+QFDEL=\"/config.txt\""
+      ],
+      "example_response": [
+        "OK",
+        "+CME ERROR: 2"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "删除文件不可恢复",
+      "danger_level": "high",
+      "recommended_api": "ctrl/file",
+      "notes": "删除系统文件可能导致功能异常",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QFWUPD",
+      "purpose": "固件更新（通过文件或 URL）",
+      "syntax": "AT+QFWUPD=<mode>,<source>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=从文件, 1=从 URL"
+        },
+        {
+          "name": "source",
+          "type": "string",
+          "values": "文件路径或 URL",
+          "desc": "固件源"
+        }
+      ],
+      "example_request": [
+        "AT+QFWUPD=0,\"/firmware.bin\"",
+        "AT+QFWUPD=1,\"http://...\""
+      ],
+      "example_response": [
+        "OK",
+        "+CME ERROR: 100"
+      ],
+      "blocking": true,
+      "time_to_effect_seconds": 300,
+      "side_effects": "更新过程中模组会重启，更新失败可能导致变砖",
+      "danger_level": "high",
+      "recommended_api": "ctrl/firmware",
+      "notes": "固件更新风险极高，需确保电源稳定",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QCFG=\"autocell\"",
+      "purpose": "自动小区选择配置",
+      "syntax": "AT+QCFG=\"autocell\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用自动小区选择"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"autocell\",1",
+        "AT+QCFG=\"autocell\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "影响小区选择算法",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "自动模式由模组优化选择",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"edrx\"",
+      "purpose": "eDRX 配置（扩展不连续接收）",
+      "syntax": "AT+QCFG=\"edrx\",<rat>,<enable>,<cycle>",
+      "params": [
+        {
+          "name": "rat",
+          "type": "string",
+          "values": "\"LTE\",\"NR5G\"",
+          "desc": "制式"
+        },
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用"
+        },
+        {
+          "name": "cycle",
+          "type": "string",
+          "values": "eDRX 周期值",
+          "desc": "周期配置"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"edrx\",\"LTE\",1,\"0101\"",
+        "AT+QCFG=\"edrx\",\"LTE\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "启用 eDRX 会降低功耗但增加延迟",
+      "danger_level": "low",
+      "recommended_api": "ctrl/power",
+      "notes": "主要用于 IoT 低功耗场景",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"psm\"",
+      "purpose": "PSM 配置（省电模式）",
+      "syntax": "AT+QCFG=\"psm\",<enable>,<tau>,<active_time>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用 PSM"
+        },
+        {
+          "name": "tau",
+          "type": "string",
+          "values": "TAU 值",
+          "desc": "跟踪区域更新周期"
+        },
+        {
+          "name": "active_time",
+          "type": "string",
+          "values": "激活时间",
+          "desc": "PSM 激活时间"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"psm\",1,\"00100001\",\"00100001\"",
+        "AT+QCFG=\"psm\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "PSM 模式下模组会深度睡眠，响应延迟很大",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/power",
+      "notes": "PSM 模式下可能需要外部触发才能唤醒",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"servicetype\"",
+      "purpose": "服务类型配置（CS/PS/CS+PS）",
+      "syntax": "AT+QCFG=\"servicetype\",<type>",
+      "params": [
+        {
+          "name": "type",
+          "type": "int",
+          "values": "1-3",
+          "desc": "1=仅CS, 2=仅PS, 3=CS+PS"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"servicetype\",3",
+        "AT+QCFG=\"servicetype\",2"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "改变服务类型可能需要重新注册",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "5G 模组通常使用 PS 模式",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"rat\"",
+      "purpose": "RAT 优先级配置",
+      "syntax": "AT+QCFG=\"rat\",<rat_list>",
+      "params": [
+        {
+          "name": "rat_list",
+          "type": "string",
+          "values": "\"LTE\",\"NR5G\",\"WCDMA\"等组合",
+          "desc": "RAT 优先级列表"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"rat\",\"NR5G,LTE\"",
+        "AT+QCFG=\"rat\",\"LTE,NR5G\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "改变 RAT 优先级可能触发重新搜索网络",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/config",
+      "notes": "影响网络注册优先级",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"ims\"",
+      "purpose": "IMS 配置（VoLTE/VoNR 相关）",
+      "syntax": "AT+QCFG=\"ims\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用 IMS, 1=启用 IMS"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"ims\",1",
+        "AT+QCFG=\"ims\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "启用 IMS 后支持 VoLTE/VoNR 通话",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "需要网络支持 IMS",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"urc/cellind\"",
+      "purpose": "小区指示 URC 配置",
+      "syntax": "AT+QCFG=\"urc/cellind\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用小区变化 URC"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"urc/cellind\",1",
+        "AT+QCFG=\"urc/cellind\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 0,
+      "side_effects": "启用后会频繁发送小区变化通知",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "主要用于实时监控",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"urc/ri\"",
+      "purpose": "RI（Ring Indicator）配置",
+      "syntax": "AT+QCFG=\"urc/ri\",<pin>,<mode>",
+      "params": [
+        {
+          "name": "pin",
+          "type": "int",
+          "values": "引脚编号",
+          "desc": "RI 引脚"
+        },
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"urc/ri\",1,1",
+        "AT+QCFG=\"urc/ri\",1,0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 0,
+      "side_effects": "配置硬件 RI 引脚行为",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "硬件相关配置",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"gnss\"",
+      "purpose": "GNSS 配置（GPS/北斗等）",
+      "syntax": "AT+QCFG=\"gnss\",<system>,<enable>",
+      "params": [
+        {
+          "name": "system",
+          "type": "string",
+          "values": "\"gps\",\"glonass\",\"beidou\"等",
+          "desc": "GNSS 系统"
+        },
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"gnss\",\"gps\",1",
+        "AT+QCFG=\"gnss\",\"all\",1"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "启用 GNSS 会增加功耗",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "需要硬件支持 GNSS",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"fastboot\"",
+      "purpose": "快速启动配置",
+      "syntax": "AT+QCFG=\"fastboot\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用快速启动"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"fastboot\",1",
+        "AT+QCFG=\"fastboot\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "下次重启时生效，启动速度更快但可能跳过某些初始化",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "需要重启才能生效",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"data_roaming\"",
+      "purpose": "数据漫游开关",
+      "syntax": "AT+QCFG=\"data_roaming\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用数据漫游, 1=启用"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"data_roaming\",1",
+        "AT+QCFG=\"data_roaming\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "禁用后无法在漫游网络使用数据",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "影响国际漫游数据使用",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"volte\"",
+      "purpose": "VoLTE 配置",
+      "syntax": "AT+QCFG=\"volte\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用 VoLTE, 1=启用"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"volte\",1",
+        "AT+QCFG=\"volte\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "启用后支持高清语音通话",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "需要网络和 SIM 卡支持",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"vonr\"",
+      "purpose": "VoNR 配置（5G 语音）",
+      "syntax": "AT+QCFG=\"vonr\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用 VoNR, 1=启用"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"vonr\",1",
+        "AT+QCFG=\"vonr\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "启用后支持 5G 语音通话",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "需要 5G SA 网络支持",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"apn2\"",
+      "purpose": "第二 APN 配置",
+      "syntax": "AT+QCFG=\"apn2\",<cid>,<apn_name>",
+      "params": [
+        {
+          "name": "cid",
+          "type": "int",
+          "values": "1-15",
+          "desc": "PDP 上下文 ID"
+        },
+        {
+          "name": "apn_name",
+          "type": "string",
+          "values": "APN 名称",
+          "desc": "第二 APN"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"apn2\",2,\"ims\"",
+        "AT+QCFG=\"apn2\",2,\"\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "配置第二 APN 用于 IMS 等特殊服务",
+      "danger_level": "low",
+      "recommended_api": "ctrl/pdp",
+      "notes": "通常用于 IMS/VoLTE",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"pdp/type\"",
+      "purpose": "PDP 类型配置",
+      "syntax": "AT+QCFG=\"pdp/type\",<cid>,<type>",
+      "params": [
+        {
+          "name": "cid",
+          "type": "int",
+          "values": "1-15",
+          "desc": "上下文 ID"
+        },
+        {
+          "name": "type",
+          "type": "string",
+          "values": "\"IP\",\"IPV6\",\"IPV4V6\"",
+          "desc": "PDP 类型"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"pdp/type\",1,\"IPV4V6\"",
+        "AT+QCFG=\"pdp/type\",1,\"IP\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "改变 PDP 类型需要重新激活上下文",
+      "danger_level": "low",
+      "recommended_api": "ctrl/pdp",
+      "notes": "IPv6 需要网络支持",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"pdp/auth\"",
+      "purpose": "PDP 认证配置",
+      "syntax": "AT+QCFG=\"pdp/auth\",<cid>,<auth_type>,<username>,<password>",
+      "params": [
+        {
+          "name": "cid",
+          "type": "int",
+          "values": "1-15",
+          "desc": "上下文 ID"
+        },
+        {
+          "name": "auth_type",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=无, 1=PAP, 2=CHAP"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "values": "用户名",
+          "desc": "认证用户名"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "values": "密码",
+          "desc": "认证密码"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"pdp/auth\",1,1,\"user\",\"pass\"",
+        "AT+QCFG=\"pdp/auth\",1,0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "配置认证信息用于特殊 APN",
+      "danger_level": "low",
+      "recommended_api": "ctrl/pdp",
+      "notes": "某些企业 APN 需要认证",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"reset\"",
+      "purpose": "恢复出厂设置（重置所有配置）",
+      "syntax": "AT+QCFG=\"reset\"",
+      "params": [],
+      "example_request": [
+        "AT+QCFG=\"reset\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": true,
+      "time_to_effect_seconds": 10,
+      "side_effects": "所有配置恢复默认值，模组会重启",
+      "danger_level": "high",
+      "recommended_api": "ctrl/reset",
+      "notes": "危险操作，会清除所有自定义配置",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QCFG=\"factory\"",
+      "purpose": "恢复出厂设置（完整重置）",
+      "syntax": "AT+QCFG=\"factory\"",
+      "params": [],
+      "example_request": [
+        "AT+QCFG=\"factory\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": true,
+      "time_to_effect_seconds": 30,
+      "side_effects": "完全恢复出厂状态，包括文件系统，模组会重启",
+      "danger_level": "high",
+      "recommended_api": "ctrl/reset",
+      "notes": "极高危险操作，所有数据会丢失",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QCFG=\"imei\"",
+      "purpose": "IMEI 配置（修改 IMEI，需授权）",
+      "syntax": "AT+QCFG=\"imei\",<imei>",
+      "params": [
+        {
+          "name": "imei",
+          "type": "string",
+          "values": "15位 IMEI",
+          "desc": "新的 IMEI 值"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"imei\",\"123456789012345\""
+      ],
+      "example_response": [
+        "OK",
+        "+CME ERROR: 100"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": null,
+      "side_effects": "修改 IMEI 可能违反法规，需要特殊授权",
+      "danger_level": "high",
+      "recommended_api": "ctrl/config",
+      "notes": "通常需要工厂模式或特殊授权才能修改",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QCFG=\"sim\"",
+      "purpose": "SIM 卡配置（SIM 选择等）",
+      "syntax": "AT+QCFG=\"sim\",<slot>",
+      "params": [
+        {
+          "name": "slot",
+          "type": "int",
+          "values": "0-1",
+          "desc": "SIM 卡槽位（双卡模组）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"sim\",0",
+        "AT+QCFG=\"sim\",1"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "切换 SIM 卡可能需要重新注册",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "仅适用于双卡模组",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"uart\"",
+      "purpose": "UART 配置（波特率、数据位等）",
+      "syntax": "AT+QCFG=\"uart\",<baudrate>,<databits>,<stopbits>,<parity>",
+      "params": [
+        {
+          "name": "baudrate",
+          "type": "int",
+          "values": "9600,115200等",
+          "desc": "波特率"
+        },
+        {
+          "name": "databits",
+          "type": "int",
+          "values": "7-8",
+          "desc": "数据位"
+        },
+        {
+          "name": "stopbits",
+          "type": "int",
+          "values": "1-2",
+          "desc": "停止位"
+        },
+        {
+          "name": "parity",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=无, 1=奇, 2=偶"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"uart\",115200,8,1,0",
+        "AT+QCFG=\"uart\",9600,8,1,0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 0,
+      "side_effects": "改变波特率后需要重新配置串口",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/config",
+      "notes": "改变后可能无法通信，需谨慎",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"gpio\"",
+      "purpose": "GPIO 配置（引脚功能设置）",
+      "syntax": "AT+QCFG=\"gpio\",<pin>,<mode>,<value>",
+      "params": [
+        {
+          "name": "pin",
+          "type": "int",
+          "values": "引脚编号",
+          "desc": "GPIO 引脚号"
+        },
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=输入, 1=输出"
+        },
+        {
+          "name": "value",
+          "type": "int",
+          "values": "0-1",
+          "desc": "输出值（输出模式）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"gpio\",1,1,1",
+        "AT+QCFG=\"gpio\",1,0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 0,
+      "side_effects": "配置硬件 GPIO 引脚",
+      "danger_level": "low",
+      "recommended_api": "ctrl/gpio",
+      "notes": "硬件相关配置",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"pcm\"",
+      "purpose": "PCM 音频配置",
+      "syntax": "AT+QCFG=\"pcm\",<enable>,<sample_rate>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用 PCM"
+        },
+        {
+          "name": "sample_rate",
+          "type": "int",
+          "values": "8000,16000等",
+          "desc": "采样率"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"pcm\",1,16000",
+        "AT+QCFG=\"pcm\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "配置音频接口",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "音频相关功能",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"netlight\"",
+      "purpose": "网络指示灯配置",
+      "syntax": "AT+QCFG=\"netlight\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用网络指示灯"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"netlight\",1",
+        "AT+QCFG=\"netlight\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 0,
+      "side_effects": "控制网络指示灯显示",
+      "danger_level": "low",
+      "recommended_api": "ctrl/config",
+      "notes": "硬件指示灯控制",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"lowpower\"",
+      "purpose": "低功耗模式配置",
+      "syntax": "AT+QCFG=\"lowpower\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用低功耗模式"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lowpower\",1",
+        "AT+QCFG=\"lowpower\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "启用后会降低功耗但可能影响性能",
+      "danger_level": "low",
+      "recommended_api": "ctrl/power",
+      "notes": "功耗优化配置",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"thermal\"",
+      "purpose": "热管理配置",
+      "syntax": "AT+QCFG=\"thermal\",<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=自动, 1=强制冷却, 2=禁用保护"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"thermal\",0",
+        "AT+QCFG=\"thermal\",1"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "禁用保护可能导致过热损坏",
+      "danger_level": "high",
+      "recommended_api": "ctrl/config",
+      "notes": "禁用热保护风险极高",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QCFG=\"txpower\"",
+      "purpose": "发射功率配置",
+      "syntax": "AT+QCFG=\"txpower\",<power>",
+      "params": [
+        {
+          "name": "power",
+          "type": "int",
+          "values": "功率等级",
+          "desc": "发射功率等级"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"txpower\",23",
+        "AT+QCFG=\"txpower\",26"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "改变发射功率可能影响信号质量和法规合规",
+      "danger_level": "high",
+      "recommended_api": "ctrl/radio",
+      "notes": "超出法规限制可能导致违法",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QCFG=\"rrc\"",
+      "purpose": "RRC 配置（无线资源控制）",
+      "syntax": "AT+QCFG=\"rrc\",<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=自动, 1=强制连接"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"rrc\",1",
+        "AT+QCFG=\"rrc\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "强制连接会增加功耗",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "RRC 连接状态控制",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"ca\"",
+      "purpose": "载波聚合配置",
+      "syntax": "AT+QCFG=\"ca\"[=<enable>]",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用 CA, 1=启用（设置时必需，查询时省略）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"ca\"",
+        "AT+QCFG=\"ca\",1",
+        "AT+QCFG=\"ca\",0"
+      ],
+      "example_response": [
+        "+QCFG: \"ca\",1",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "禁用 CA 可能降低数据速率",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "载波聚合功能开关。不带参数时查询当前状态，带参数时设置状态。",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"mimo\"",
+      "purpose": "MIMO 配置",
+      "syntax": "AT+QCFG=\"mimo\",<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=自动, 1=2x2, 2=4x4"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"mimo\",1",
+        "AT+QCFG=\"mimo\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "MIMO 模式影响天线使用",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "需要硬件支持多天线",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"antenna\"",
+      "purpose": "天线选择配置",
+      "syntax": "AT+QCFG=\"antenna\",<antenna>",
+      "params": [
+        {
+          "name": "antenna",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=自动, 1=主天线, 2=辅天线"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"antenna\",1",
+        "AT+QCFG=\"antenna\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "选择特定天线可能影响信号",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "硬件天线选择",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"sar\"",
+      "purpose": "SAR 配置（比吸收率限制）",
+      "syntax": "AT+QCFG=\"sar\",<level>",
+      "params": [
+        {
+          "name": "level",
+          "type": "int",
+          "values": "0-2",
+          "desc": "SAR 限制等级"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"sar\",1",
+        "AT+QCFG=\"sar\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "SAR 限制影响发射功率",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/radio",
+      "notes": "法规相关配置",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/band\"",
+      "purpose": "LTE 频段锁定（详细配置）",
+      "syntax": "AT+QCFG=\"lte/band\",<band_mask>",
+      "params": [
+        {
+          "name": "band_mask",
+          "type": "string",
+          "values": "频段掩码（十六进制）",
+          "desc": "LTE 频段位掩码"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/band\",\"0000000800000080\"",
+        "AT+QCFG=\"lte/band\",\"0\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "锁定到指定 LTE 频段",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/lock",
+      "notes": "使用位掩码精确控制频段",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/band\"",
+      "purpose": "5G 频段锁定（详细配置）",
+      "syntax": "AT+QCFG=\"nr5g/band\",<band_mask>",
+      "params": [
+        {
+          "name": "band_mask",
+          "type": "string",
+          "values": "频段掩码（十六进制）",
+          "desc": "5G 频段位掩码"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/band\",\"0000000000000001\"",
+        "AT+QCFG=\"nr5g/band\",\"0\""
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 10,
+      "side_effects": "锁定到指定 5G 频段",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/lock",
+      "notes": "使用位掩码精确控制频段",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/ca\"",
+      "purpose": "LTE 载波聚合配置",
+      "syntax": "AT+QCFG=\"lte/ca\"[=<enable>]",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用 LTE CA（设置时必需，查询时省略）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/ca\"",
+        "AT+QCFG=\"lte/ca\",1",
+        "AT+QCFG=\"lte/ca\",0"
+      ],
+      "example_response": [
+        "+QCFG: \"lte/ca\",1",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "启用 LTE 载波聚合",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "LTE CA 功能开关。不带参数时查询当前状态，带参数时设置状态。",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/ca\"",
+      "purpose": "5G 载波聚合配置",
+      "syntax": "AT+QCFG=\"nr5g/ca\"[=<enable>]",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用 5G CA（设置时必需，查询时省略）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/ca\"",
+        "AT+QCFG=\"nr5g/ca\",1",
+        "AT+QCFG=\"nr5g/ca\",0"
+      ],
+      "example_response": [
+        "+QCFG: \"nr5g/ca\",1",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "启用 5G 载波聚合",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G CA 功能开关。不带参数时查询当前状态，带参数时设置状态。",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/ulca\"",
+      "purpose": "LTE 上行载波聚合配置",
+      "syntax": "AT+QCFG=\"lte/ulca\"[=<enable>]",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用上行 CA（设置时必需，查询时省略）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/ulca\"",
+        "AT+QCFG=\"lte/ulca\",1",
+        "AT+QCFG=\"lte/ulca\",0"
+      ],
+      "example_response": [
+        "+QCFG: \"lte/ulca\",1",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "启用 LTE 上行载波聚合",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "上行 CA 功能。不带参数时查询当前状态，带参数时设置状态。",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/ulca\"",
+      "purpose": "5G 上行载波聚合配置",
+      "syntax": "AT+QCFG=\"nr5g/ulca\"[=<enable>]",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用上行 CA（设置时必需，查询时省略）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/ulca\"",
+        "AT+QCFG=\"nr5g/ulca\",1",
+        "AT+QCFG=\"nr5g/ulca\",0"
+      ],
+      "example_response": [
+        "+QCFG: \"nr5g/ulca\",1",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "启用 5G 上行载波聚合",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G 上行 CA 功能。不带参数时查询当前状态，带参数时设置状态。",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/dlca\"",
+      "purpose": "LTE 下行载波聚合配置",
+      "syntax": "AT+QCFG=\"lte/dlca\"[=<enable>]",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用下行 CA（设置时必需，查询时省略）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/dlca\"",
+        "AT+QCFG=\"lte/dlca\",1",
+        "AT+QCFG=\"lte/dlca\",0"
+      ],
+      "example_response": [
+        "+QCFG: \"lte/dlca\",1",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "启用 LTE 下行载波聚合",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "下行 CA 功能。不带参数时查询当前状态，带参数时设置状态。",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/dlca\"",
+      "purpose": "5G 下行载波聚合配置",
+      "syntax": "AT+QCFG=\"nr5g/dlca\"[=<enable>]",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用下行 CA（设置时必需，查询时省略）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/dlca\"",
+        "AT+QCFG=\"nr5g/dlca\",1",
+        "AT+QCFG=\"nr5g/dlca\",0"
+      ],
+      "example_response": [
+        "+QCFG: \"nr5g/dlca\",1",
+        "OK",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "启用 5G 下行载波聚合",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G 下行 CA 功能。不带参数时查询当前状态，带参数时设置状态。",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCAINFO",
+      "purpose": "查询载波聚合参数（PCC和SCC信息）",
+      "syntax": "AT+QCAINFO[=?|?|<5G_signal_ext>]",
+      "params": [
+        {
+          "name": "5G_signal_ext",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=隐藏扩展参数(NR_RSRP/NR_RSRQ/NR_SNR), 1=显示扩展参数（仅Write命令）"
+        }
+      ],
+      "example_request": [
+        "AT+QCAINFO",
+        "AT+QCAINFO?",
+        "AT+QCAINFO=?",
+        "AT+QCAINFO=1"
+      ],
+      "example_response": [
+        "+QCAINFO: \"PCC\",300,100,\"LTE BAND 1\",1,23,-66,-12,-34,30",
+        "+QCAINFO: \"SCC\",1575,100,\"LTE BAND 3\",2,43,-64,-7,-24,30,0,-,-",
+        "OK",
+        "+QCAINFO: (list of supported <5G_signal_ext>)",
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 0,
+      "side_effects": "查询载波聚合状态，不影响配置",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "查询命令，返回PCC（主载波）和SCC（辅载波）信息。支持LTE、EN-DC和SA模式。仅在模组注册网络后有效。响应格式因模式而异：LTE模式返回EARFCN、带宽、频段、PCID、RSRP、RSRQ、RSSI、RSSNR等；EN-DC和SA模式还包含NR相关参数。Write命令用于控制是否显示5G扩展参数。",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/bandwidth\"",
+      "purpose": "LTE 带宽配置",
+      "syntax": "AT+QCFG=\"lte/bandwidth\",<bw>",
+      "params": [
+        {
+          "name": "bw",
+          "type": "int",
+          "values": "1.4,3,5,10,15,20",
+          "desc": "带宽（MHz）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/bandwidth\",20",
+        "AT+QCFG=\"lte/bandwidth\",10"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "限制 LTE 带宽使用",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "带宽限制配置",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/bandwidth\"",
+      "purpose": "5G 带宽配置",
+      "syntax": "AT+QCFG=\"nr5g/bandwidth\",<bw>",
+      "params": [
+        {
+          "name": "bw",
+          "type": "int",
+          "values": "5,10,15,20,25,30,40,50,60,80,100",
+          "desc": "带宽（MHz）"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/bandwidth\",100",
+        "AT+QCFG=\"nr5g/bandwidth\",20"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "限制 5G 带宽使用",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G 带宽限制",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/txpower\"",
+      "purpose": "LTE 发射功率配置",
+      "syntax": "AT+QCFG=\"lte/txpower\",<power>",
+      "params": [
+        {
+          "name": "power",
+          "type": "int",
+          "values": "功率等级",
+          "desc": "LTE 发射功率"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/txpower\",23",
+        "AT+QCFG=\"lte/txpower\",26"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "改变 LTE 发射功率",
+      "danger_level": "high",
+      "recommended_api": "ctrl/radio",
+      "notes": "法规限制相关",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/txpower\"",
+      "purpose": "5G 发射功率配置",
+      "syntax": "AT+QCFG=\"nr5g/txpower\",<power>",
+      "params": [
+        {
+          "name": "power",
+          "type": "int",
+          "values": "功率等级",
+          "desc": "5G 发射功率"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/txpower\",23",
+        "AT+QCFG=\"nr5g/txpower\",26"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "改变 5G 发射功率",
+      "danger_level": "high",
+      "recommended_api": "ctrl/radio",
+      "notes": "法规限制相关",
+      "priority": "High"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/mimo\"",
+      "purpose": "LTE MIMO 配置",
+      "syntax": "AT+QCFG=\"lte/mimo\",<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=自动, 1=2x2, 2=4x4"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/mimo\",1",
+        "AT+QCFG=\"lte/mimo\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "LTE MIMO 模式配置",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "LTE MIMO 功能",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/mimo\"",
+      "purpose": "5G MIMO 配置",
+      "syntax": "AT+QCFG=\"nr5g/mimo\",<mode>",
+      "params": [
+        {
+          "name": "mode",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=自动, 1=2x2, 2=4x4"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/mimo\",1",
+        "AT+QCFG=\"nr5g/mimo\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "5G MIMO 模式配置",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G MIMO 功能",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/antenna\"",
+      "purpose": "LTE 天线选择",
+      "syntax": "AT+QCFG=\"lte/antenna\",<antenna>",
+      "params": [
+        {
+          "name": "antenna",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=自动, 1=主, 2=辅"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/antenna\",1",
+        "AT+QCFG=\"lte/antenna\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "LTE 天线选择",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "LTE 天线配置",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/antenna\"",
+      "purpose": "5G 天线选择",
+      "syntax": "AT+QCFG=\"nr5g/antenna\",<antenna>",
+      "params": [
+        {
+          "name": "antenna",
+          "type": "int",
+          "values": "0-2",
+          "desc": "0=自动, 1=主, 2=辅"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/antenna\",1",
+        "AT+QCFG=\"nr5g/antenna\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 1,
+      "side_effects": "5G 天线选择",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G 天线配置",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/qrxlevmin\"",
+      "purpose": "LTE 最小接收电平配置",
+      "syntax": "AT+QCFG=\"lte/qrxlevmin\",<value>",
+      "params": [
+        {
+          "name": "value",
+          "type": "int",
+          "values": "dBm 值",
+          "desc": "最小接收电平阈值"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/qrxlevmin\",-120",
+        "AT+QCFG=\"lte/qrxlevmin\",-140"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "影响小区选择和重选",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "接收灵敏度配置",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/qrxlevmin\"",
+      "purpose": "5G 最小接收电平配置",
+      "syntax": "AT+QCFG=\"nr5g/qrxlevmin\",<value>",
+      "params": [
+        {
+          "name": "value",
+          "type": "int",
+          "values": "dBm 值",
+          "desc": "最小接收电平阈值"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/qrxlevmin\",-120",
+        "AT+QCFG=\"nr5g/qrxlevmin\",-140"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "影响 5G 小区选择",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G 接收灵敏度",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/cellreselection\"",
+      "purpose": "LTE 小区重选配置",
+      "syntax": "AT+QCFG=\"lte/cellreselection\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用自动重选"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/cellreselection\",1",
+        "AT+QCFG=\"lte/cellreselection\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "禁用后不会自动切换小区",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "小区重选功能",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/cellreselection\"",
+      "purpose": "5G 小区重选配置",
+      "syntax": "AT+QCFG=\"nr5g/cellreselection\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用自动重选"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/cellreselection\",1",
+        "AT+QCFG=\"nr5g/cellreselection\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "禁用后不会自动切换 5G 小区",
+      "danger_level": "low",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G 小区重选",
+      "priority": "Low"
+    },
+    {
+      "cmd": "AT+QCFG=\"lte/handover\"",
+      "purpose": "LTE 切换配置",
+      "syntax": "AT+QCFG=\"lte/handover\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用切换"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"lte/handover\",1",
+        "AT+QCFG=\"lte/handover\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "禁用切换可能导致连接中断",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/radio",
+      "notes": "切换功能控制",
+      "priority": "Medium"
+    },
+    {
+      "cmd": "AT+QCFG=\"nr5g/handover\"",
+      "purpose": "5G 切换配置",
+      "syntax": "AT+QCFG=\"nr5g/handover\",<enable>",
+      "params": [
+        {
+          "name": "enable",
+          "type": "int",
+          "values": "0-1",
+          "desc": "0=禁用, 1=启用切换"
+        }
+      ],
+      "example_request": [
+        "AT+QCFG=\"nr5g/handover\",1",
+        "AT+QCFG=\"nr5g/handover\",0"
+      ],
+      "example_response": [
+        "OK"
+      ],
+      "blocking": false,
+      "time_to_effect_seconds": 5,
+      "side_effects": "禁用切换可能导致连接中断",
+      "danger_level": "medium",
+      "recommended_api": "ctrl/radio",
+      "notes": "5G 切换功能",
+      "priority": "Medium"
+    }
+  ],
+  "grouped": {
+    "ctrl/reboot": [
+      {
+        "cmd": "AT+CFUN",
+        "purpose": "射频开关/模组功能控制（设置功能级别，可重启模组）",
+        "syntax": "AT+CFUN=<fun>[,<rst>]",
+        "params": [
+          {
+            "name": "fun",
+            "type": "int",
+            "values": "0-1,4",
+            "desc": "0=最小功能, 1=全功能, 4=飞行模式"
+          },
+          {
+            "name": "rst",
+            "type": "int",
+            "values": "0-1",
+            "desc": "可选，1=执行后重启模组"
+          }
+        ],
+        "example_request": [
+          "AT+CFUN=1",
+          "AT+CFUN=1,1"
+        ],
+        "example_response": [
+          "OK",
+          "+CME ERROR: 3"
+        ],
+        "blocking": true,
+        "time_to_effect_seconds": 3,
+        "side_effects": "可能重启模组，断开所有连接",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/reboot",
+        "notes": "fun=1,1 会立即重启模组",
+        "priority": "High"
+      },
+      {
+        "cmd": "AT+QPOWD",
+        "purpose": "模组关机（完全断电）",
+        "syntax": "AT+QPOWD=<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=正常关机, 1=立即关机"
+          }
+        ],
+        "example_request": [
+          "AT+QPOWD=0",
+          "AT+QPOWD=1"
+        ],
+        "example_response": [
+          "OK",
+          "NORMAL POWER DOWN"
+        ],
+        "blocking": true,
+        "time_to_effect_seconds": 2,
+        "side_effects": "模组完全断电，所有功能停止，需外部唤醒",
+        "danger_level": "high",
+        "recommended_api": "ctrl/reboot",
+        "notes": "关机后需外部触发（如 USB 重连）才能唤醒",
+        "priority": "High"
+      }
+    ],
+    "ctrl/power": [
+      {
+        "cmd": "AT+QSCLK",
+        "purpose": "睡眠模式控制（进入/退出睡眠）",
+        "syntax": "AT+QSCLK=<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用睡眠, 1=启用睡眠"
+          }
+        ],
+        "example_request": [
+          "AT+QSCLK=1",
+          "AT+QSCLK=0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "启用后模组会在空闲时进入睡眠，降低功耗",
+        "danger_level": "low",
+        "recommended_api": "ctrl/power",
+        "notes": "睡眠模式下响应可能延迟",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"edrx\"",
+        "purpose": "eDRX 配置（扩展不连续接收）",
+        "syntax": "AT+QCFG=\"edrx\",<rat>,<enable>,<cycle>",
+        "params": [
+          {
+            "name": "rat",
+            "type": "string",
+            "values": "\"LTE\",\"NR5G\"",
+            "desc": "制式"
+          },
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用"
+          },
+          {
+            "name": "cycle",
+            "type": "string",
+            "values": "eDRX 周期值",
+            "desc": "周期配置"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"edrx\",\"LTE\",1,\"0101\"",
+          "AT+QCFG=\"edrx\",\"LTE\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "启用 eDRX 会降低功耗但增加延迟",
+        "danger_level": "low",
+        "recommended_api": "ctrl/power",
+        "notes": "主要用于 IoT 低功耗场景",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"psm\"",
+        "purpose": "PSM 配置（省电模式）",
+        "syntax": "AT+QCFG=\"psm\",<enable>,<tau>,<active_time>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用 PSM"
+          },
+          {
+            "name": "tau",
+            "type": "string",
+            "values": "TAU 值",
+            "desc": "跟踪区域更新周期"
+          },
+          {
+            "name": "active_time",
+            "type": "string",
+            "values": "激活时间",
+            "desc": "PSM 激活时间"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"psm\",1,\"00100001\",\"00100001\"",
+          "AT+QCFG=\"psm\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "PSM 模式下模组会深度睡眠，响应延迟很大",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/power",
+        "notes": "PSM 模式下可能需要外部触发才能唤醒",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QCFG=\"lowpower\"",
+        "purpose": "低功耗模式配置",
+        "syntax": "AT+QCFG=\"lowpower\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用低功耗模式"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lowpower\",1",
+          "AT+QCFG=\"lowpower\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "启用后会降低功耗但可能影响性能",
+        "danger_level": "low",
+        "recommended_api": "ctrl/power",
+        "notes": "功耗优化配置",
+        "priority": "Low"
+      }
+    ],
+    "ctrl/config": [
+      {
+        "cmd": "AT+QCFG=\"usbspeed\"",
+        "purpose": "设置 USB 速率模式（USB 2.0/3.1 Gen1/Gen2）",
+        "syntax": "AT+QCFG=\"usbspeed\",<speed>",
+        "params": [
+          {
+            "name": "speed",
+            "type": "int",
+            "values": "20,311,312",
+            "desc": "20=USB2.0(480Mbps), 311=USB3.1 Gen1(5Gbps), 312=USB3.1 Gen2(10Gbps)"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"usbspeed\",312",
+          "AT+QCFG=\"usbspeed\",20"
+        ],
+        "example_response": [
+          "OK",
+          "+QCFG: \"usbspeed\",312"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "可能需要重新连接 USB 才能生效",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "某些模式需要硬件支持",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"usbnet\"",
+        "purpose": "设置 USB 网络模式（ECM/RNDIS/NCM）",
+        "syntax": "AT+QCFG=\"usbnet\",<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=ECM, 1=RNDIS, 2=NCM"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"usbnet\",0",
+          "AT+QCFG=\"usbnet\",1"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "可能需要重新连接 USB 或重启驱动",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "不同模式在不同操作系统上兼容性不同",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nwscanseq\"",
+        "purpose": "网络扫描序列配置（优先扫描顺序）",
+        "syntax": "AT+QCFG=\"nwscanseq\",<seq>",
+        "params": [
+          {
+            "name": "seq",
+            "type": "string",
+            "values": "\"AUTO\",\"GSM\",\"WCDMA\",\"LTE\",\"NR5G\"",
+            "desc": "扫描优先级序列"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nwscanseq\",\"NR5G_LTE\"",
+          "AT+QCFG=\"nwscanseq\",\"AUTO\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "改变网络搜索优先级，可能影响注册速度",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "AUTO 模式由模组自动选择",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nwscanmode\"",
+        "purpose": "网络扫描模式配置（自动/手动）",
+        "syntax": "AT+QCFG=\"nwscanmode\",<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-3",
+            "desc": "0=自动, 1=手动, 2=去注册, 3=仅搜索"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nwscanmode\",0",
+          "AT+QCFG=\"nwscanmode\",1"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "手动模式需要手动触发注册",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "模式2会断开当前连接",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"roamservice\"",
+        "purpose": "漫游服务配置（启用/禁用漫游）",
+        "syntax": "AT+QCFG=\"roamservice\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用漫游, 1=启用漫游"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"roamservice\",1",
+          "AT+QCFG=\"roamservice\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "禁用漫游后只能在归属网络使用",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "可能影响国际漫游功能",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"iotopmode\"",
+        "purpose": "IoT 操作模式配置（Cat-M/NB-IoT 等）",
+        "syntax": "AT+QCFG=\"iotopmode\",<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-3",
+            "desc": "0=自动, 1=Cat-M, 2=NB-IoT, 3=Cat-M+NB-IoT"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"iotopmode\",1",
+          "AT+QCFG=\"iotopmode\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "改变 IoT 模式可能需要重新注册网络",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/config",
+        "notes": "仅适用于支持 IoT 的模组",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QPRTPARA",
+        "purpose": "打印参数设置（控制 URC 输出）",
+        "syntax": "AT+QPRTPARA=<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用详细打印, 1=启用详细打印"
+          }
+        ],
+        "example_request": [
+          "AT+QPRTPARA=1",
+          "AT+QPRTPARA=0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 0,
+        "side_effects": "影响 URC 消息的详细程度",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "主要用于调试",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"autocell\"",
+        "purpose": "自动小区选择配置",
+        "syntax": "AT+QCFG=\"autocell\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用自动小区选择"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"autocell\",1",
+          "AT+QCFG=\"autocell\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "影响小区选择算法",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "自动模式由模组优化选择",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"servicetype\"",
+        "purpose": "服务类型配置（CS/PS/CS+PS）",
+        "syntax": "AT+QCFG=\"servicetype\",<type>",
+        "params": [
+          {
+            "name": "type",
+            "type": "int",
+            "values": "1-3",
+            "desc": "1=仅CS, 2=仅PS, 3=CS+PS"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"servicetype\",3",
+          "AT+QCFG=\"servicetype\",2"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "改变服务类型可能需要重新注册",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "5G 模组通常使用 PS 模式",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"rat\"",
+        "purpose": "RAT 优先级配置",
+        "syntax": "AT+QCFG=\"rat\",<rat_list>",
+        "params": [
+          {
+            "name": "rat_list",
+            "type": "string",
+            "values": "\"LTE\",\"NR5G\",\"WCDMA\"等组合",
+            "desc": "RAT 优先级列表"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"rat\",\"NR5G,LTE\"",
+          "AT+QCFG=\"rat\",\"LTE,NR5G\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "改变 RAT 优先级可能触发重新搜索网络",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/config",
+        "notes": "影响网络注册优先级",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QCFG=\"ims\"",
+        "purpose": "IMS 配置（VoLTE/VoNR 相关）",
+        "syntax": "AT+QCFG=\"ims\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用 IMS, 1=启用 IMS"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"ims\",1",
+          "AT+QCFG=\"ims\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "启用 IMS 后支持 VoLTE/VoNR 通话",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "需要网络支持 IMS",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"urc/cellind\"",
+        "purpose": "小区指示 URC 配置",
+        "syntax": "AT+QCFG=\"urc/cellind\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用小区变化 URC"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"urc/cellind\",1",
+          "AT+QCFG=\"urc/cellind\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 0,
+        "side_effects": "启用后会频繁发送小区变化通知",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "主要用于实时监控",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"urc/ri\"",
+        "purpose": "RI（Ring Indicator）配置",
+        "syntax": "AT+QCFG=\"urc/ri\",<pin>,<mode>",
+        "params": [
+          {
+            "name": "pin",
+            "type": "int",
+            "values": "引脚编号",
+            "desc": "RI 引脚"
+          },
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"urc/ri\",1,1",
+          "AT+QCFG=\"urc/ri\",1,0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 0,
+        "side_effects": "配置硬件 RI 引脚行为",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "硬件相关配置",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"gnss\"",
+        "purpose": "GNSS 配置（GPS/北斗等）",
+        "syntax": "AT+QCFG=\"gnss\",<system>,<enable>",
+        "params": [
+          {
+            "name": "system",
+            "type": "string",
+            "values": "\"gps\",\"glonass\",\"beidou\"等",
+            "desc": "GNSS 系统"
+          },
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"gnss\",\"gps\",1",
+          "AT+QCFG=\"gnss\",\"all\",1"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "启用 GNSS 会增加功耗",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "需要硬件支持 GNSS",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"fastboot\"",
+        "purpose": "快速启动配置",
+        "syntax": "AT+QCFG=\"fastboot\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用快速启动"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"fastboot\",1",
+          "AT+QCFG=\"fastboot\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "下次重启时生效，启动速度更快但可能跳过某些初始化",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "需要重启才能生效",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"data_roaming\"",
+        "purpose": "数据漫游开关",
+        "syntax": "AT+QCFG=\"data_roaming\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用数据漫游, 1=启用"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"data_roaming\",1",
+          "AT+QCFG=\"data_roaming\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "禁用后无法在漫游网络使用数据",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "影响国际漫游数据使用",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"volte\"",
+        "purpose": "VoLTE 配置",
+        "syntax": "AT+QCFG=\"volte\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用 VoLTE, 1=启用"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"volte\",1",
+          "AT+QCFG=\"volte\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "启用后支持高清语音通话",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "需要网络和 SIM 卡支持",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"vonr\"",
+        "purpose": "VoNR 配置（5G 语音）",
+        "syntax": "AT+QCFG=\"vonr\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用 VoNR, 1=启用"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"vonr\",1",
+          "AT+QCFG=\"vonr\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "启用后支持 5G 语音通话",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "需要 5G SA 网络支持",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"imei\"",
+        "purpose": "IMEI 配置（修改 IMEI，需授权）",
+        "syntax": "AT+QCFG=\"imei\",<imei>",
+        "params": [
+          {
+            "name": "imei",
+            "type": "string",
+            "values": "15位 IMEI",
+            "desc": "新的 IMEI 值"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"imei\",\"123456789012345\""
+        ],
+        "example_response": [
+          "OK",
+          "+CME ERROR: 100"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "修改 IMEI 可能违反法规，需要特殊授权",
+        "danger_level": "high",
+        "recommended_api": "ctrl/config",
+        "notes": "通常需要工厂模式或特殊授权才能修改",
+        "priority": "High"
+      },
+      {
+        "cmd": "AT+QCFG=\"sim\"",
+        "purpose": "SIM 卡配置（SIM 选择等）",
+        "syntax": "AT+QCFG=\"sim\",<slot>",
+        "params": [
+          {
+            "name": "slot",
+            "type": "int",
+            "values": "0-1",
+            "desc": "SIM 卡槽位（双卡模组）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"sim\",0",
+          "AT+QCFG=\"sim\",1"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "切换 SIM 卡可能需要重新注册",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "仅适用于双卡模组",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"uart\"",
+        "purpose": "UART 配置（波特率、数据位等）",
+        "syntax": "AT+QCFG=\"uart\",<baudrate>,<databits>,<stopbits>,<parity>",
+        "params": [
+          {
+            "name": "baudrate",
+            "type": "int",
+            "values": "9600,115200等",
+            "desc": "波特率"
+          },
+          {
+            "name": "databits",
+            "type": "int",
+            "values": "7-8",
+            "desc": "数据位"
+          },
+          {
+            "name": "stopbits",
+            "type": "int",
+            "values": "1-2",
+            "desc": "停止位"
+          },
+          {
+            "name": "parity",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=无, 1=奇, 2=偶"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"uart\",115200,8,1,0",
+          "AT+QCFG=\"uart\",9600,8,1,0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 0,
+        "side_effects": "改变波特率后需要重新配置串口",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/config",
+        "notes": "改变后可能无法通信，需谨慎",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QCFG=\"pcm\"",
+        "purpose": "PCM 音频配置",
+        "syntax": "AT+QCFG=\"pcm\",<enable>,<sample_rate>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用 PCM"
+          },
+          {
+            "name": "sample_rate",
+            "type": "int",
+            "values": "8000,16000等",
+            "desc": "采样率"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"pcm\",1,16000",
+          "AT+QCFG=\"pcm\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "配置音频接口",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "音频相关功能",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"netlight\"",
+        "purpose": "网络指示灯配置",
+        "syntax": "AT+QCFG=\"netlight\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用网络指示灯"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"netlight\",1",
+          "AT+QCFG=\"netlight\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 0,
+        "side_effects": "控制网络指示灯显示",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "硬件指示灯控制",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"thermal\"",
+        "purpose": "热管理配置",
+        "syntax": "AT+QCFG=\"thermal\",<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=自动, 1=强制冷却, 2=禁用保护"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"thermal\",0",
+          "AT+QCFG=\"thermal\",1"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "禁用保护可能导致过热损坏",
+        "danger_level": "high",
+        "recommended_api": "ctrl/config",
+        "notes": "禁用热保护风险极高",
+        "priority": "High"
+      },
+      {
+        "cmd": "AT+QNWPREFCFG=\"mode_pref\"",
+        "purpose": "网络搜索模式配置（选择上网模式：AUTO/WCDMA/LTE/NR5G等）",
+        "syntax": "AT+QNWPREFCFG=\"mode_pref\"[=<mode_pref>]",
+        "params": [
+          {
+            "name": "mode_pref",
+            "type": "string",
+            "values": "\"AUTO\",\"WCDMA\",\"LTE\",\"NR5G\"或组合（用冒号分隔，如\"LTE:NR5G\"）",
+            "desc": "网络搜索模式（设置时必需，查询时省略）。AUTO=自动选择WCDMA&LTE&5G, WCDMA=仅WCDMA, LTE=仅LTE, NR5G=仅5G, 可组合如LTE:NR5G"
+          }
+        ],
+        "example_request": [
+          "AT+QNWPREFCFG=\"mode_pref\"",
+          "AT+QNWPREFCFG=\"mode_pref\",AUTO",
+          "AT+QNWPREFCFG=\"mode_pref\",LTE",
+          "AT+QNWPREFCFG=\"mode_pref\",LTE:NR5G"
+        ],
+        "example_response": [
+          "+QNWPREFCFG: \"mode_pref\",AUTO",
+          "OK",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "改变网络搜索模式，可能触发重新搜索网络",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "网络模式选择命令。不带参数时查询当前模式，带参数时设置模式。配置会保存到NVM。这是安全的设置命令，用于选择上网模式。",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QNWPREFCFG=\"lte_band\"",
+        "purpose": "LTE频段偏好配置（设置LTE频段搜索偏好，非锁定）",
+        "syntax": "AT+QNWPREFCFG=\"lte_band\"[=<LTE_band>]",
+        "params": [
+          {
+            "name": "LTE_band",
+            "type": "string",
+            "values": "频段列表，用冒号分隔，如\"1:2:3\"表示B1:B2:B3",
+            "desc": "LTE频段偏好列表（设置时必需，查询时省略）。空字符串表示使用所有支持的频段"
+          }
+        ],
+        "example_request": [
+          "AT+QNWPREFCFG=\"lte_band\"",
+          "AT+QNWPREFCFG=\"lte_band\",1:2:3",
+          "AT+QNWPREFCFG=\"lte_band\",\"\""
+        ],
+        "example_response": [
+          "+QNWPREFCFG: \"lte_band\",1:2:3:4:5:7:8:12:13:14:17:18:19:20:25:26:28:29:30:32:34:38:39:40:41:42:66:71",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "设置LTE频段搜索偏好，模组会优先搜索指定频段",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "频段偏好设置（非锁定）。不带参数时查询当前偏好，带参数时设置偏好。配置会保存到NVM。这是安全的设置命令。",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QNWPREFCFG=\"nsa_nr5g_band\"",
+        "purpose": "5G NSA频段偏好配置（设置5G NSA频段搜索偏好）",
+        "syntax": "AT+QNWPREFCFG=\"nsa_nr5g_band\"[=<NSA_NR5G_band>]",
+        "params": [
+          {
+            "name": "NSA_NR5G_band",
+            "type": "string",
+            "values": "频段列表，用冒号分隔，如\"1:3:41\"表示n1:n3:n41",
+            "desc": "5G NSA频段偏好列表（设置时必需，查询时省略）。空字符串表示使用所有支持的频段"
+          }
+        ],
+        "example_request": [
+          "AT+QNWPREFCFG=\"nsa_nr5g_band\"",
+          "AT+QNWPREFCFG=\"nsa_nr5g_band\",1:3:41",
+          "AT+QNWPREFCFG=\"nsa_nr5g_band\",\"\""
+        ],
+        "example_response": [
+          "+QNWPREFCFG: \"nsa_nr5g_band\",1:3:7:20:28:40:41:71:77:78:79",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "设置5G NSA频段搜索偏好，模组会优先搜索指定频段",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "5G NSA频段偏好设置。不带参数时查询当前偏好，带参数时设置偏好。配置会保存到NVM。这是安全的设置命令。",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QNWPREFCFG=\"nr5g_band\"",
+        "purpose": "5G SA频段偏好配置（设置5G SA频段搜索偏好）",
+        "syntax": "AT+QNWPREFCFG=\"nr5g_band\"[=<SA_NR5G_band>]",
+        "params": [
+          {
+            "name": "SA_NR5G_band",
+            "type": "string",
+            "values": "频段列表，用冒号分隔，如\"1:3:41\"表示n1:n3:n41",
+            "desc": "5G SA频段偏好列表（设置时必需，查询时省略）。空字符串表示使用所有支持的频段"
+          }
+        ],
+        "example_request": [
+          "AT+QNWPREFCFG=\"nr5g_band\"",
+          "AT+QNWPREFCFG=\"nr5g_band\",1:3:41",
+          "AT+QNWPREFCFG=\"nr5g_band\",\"\""
+        ],
+        "example_response": [
+          "+QNWPREFCFG: \"nr5g_band\",1:3:7:20:28:40:41:71:77:78:79",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "设置5G SA频段搜索偏好，模组会优先搜索指定频段",
+        "danger_level": "low",
+        "recommended_api": "ctrl/config",
+        "notes": "5G SA频段偏好设置。不带参数时查询当前偏好，带参数时设置偏好。配置会保存到NVM。这是安全的设置命令。",
+        "priority": "Medium"
+      }
+    ],
+    "ctrl/lock": [
+      {
+        "cmd": "AT+QCFG=\"band\"",
+        "purpose": "频段锁定配置（锁定到指定 LTE/NR 频段）",
+        "syntax": "AT+QCFG=\"band\",<rat>,<band_list>",
+        "params": [
+          {
+            "name": "rat",
+            "type": "string",
+            "values": "\"LTE\",\"NR5G\"",
+            "desc": "制式类型"
+          },
+          {
+            "name": "band_list",
+            "type": "string",
+            "values": "频段列表，如\"B3,B41\"或\"n41,n78\"",
+            "desc": "要锁定的频段，空字符串表示解锁"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"band\",\"LTE\",\"B3,B41\"",
+          "AT+QCFG=\"band\",\"NR5G\",\"n41\""
+        ],
+        "example_response": [
+          "OK",
+          "+CME ERROR: 100"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "锁定后只能使用指定频段，可能影响网络连接",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/lock",
+        "notes": "频段锁定可能导致无法注册网络，需谨慎使用",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QNWLOCK",
+        "purpose": "网络/制式锁定（锁定到 LTE/5G/WCDMA 等）",
+        "syntax": "AT+QNWLOCK=<mode>,<rat>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=解锁, 1=锁定"
+          },
+          {
+            "name": "rat",
+            "type": "string",
+            "values": "\"LTE\",\"NR5G\",\"WCDMA\"",
+            "desc": "要锁定的制式"
+          }
+        ],
+        "example_request": [
+          "AT+QNWLOCK=1,\"NR5G\"",
+          "AT+QNWLOCK=0"
+        ],
+        "example_response": [
+          "OK",
+          "+CME ERROR: 100"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "锁定后只能使用指定制式，可能导致无法注册",
+        "danger_level": "high",
+        "recommended_api": "ctrl/lock",
+        "notes": "强烈建议提供解锁命令，避免永久锁定",
+        "priority": "High"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/band\"",
+        "purpose": "LTE 频段锁定（详细配置）",
+        "syntax": "AT+QCFG=\"lte/band\",<band_mask>",
+        "params": [
+          {
+            "name": "band_mask",
+            "type": "string",
+            "values": "频段掩码（十六进制）",
+            "desc": "LTE 频段位掩码"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/band\",\"0000000800000080\"",
+          "AT+QCFG=\"lte/band\",\"0\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "锁定到指定 LTE 频段",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/lock",
+        "notes": "使用位掩码精确控制频段",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/band\"",
+        "purpose": "5G 频段锁定（详细配置）",
+        "syntax": "AT+QCFG=\"nr5g/band\",<band_mask>",
+        "params": [
+          {
+            "name": "band_mask",
+            "type": "string",
+            "values": "频段掩码（十六进制）",
+            "desc": "5G 频段位掩码"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/band\",\"0000000000000001\"",
+          "AT+QCFG=\"nr5g/band\",\"0\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "锁定到指定 5G 频段",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/lock",
+        "notes": "使用位掩码精确控制频段",
+        "priority": "Medium"
+      }
+    ],
+    "ctrl/pdp": [
+      {
+        "cmd": "AT+QCFG=\"apn\"",
+        "purpose": "APN 配置（设置默认 APN）",
+        "syntax": "AT+QCFG=\"apn\",<cid>,<apn_name>",
+        "params": [
+          {
+            "name": "cid",
+            "type": "int",
+            "values": "1-15",
+            "desc": "PDP 上下文 ID"
+          },
+          {
+            "name": "apn_name",
+            "type": "string",
+            "values": "APN 名称，如\"cmnet\"",
+            "desc": "APN 字符串"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"apn\",1,\"cmnet\"",
+          "AT+QCFG=\"apn\",1,\"internet\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "需要重新激活 PDP 上下文才能生效",
+        "danger_level": "low",
+        "recommended_api": "ctrl/pdp",
+        "notes": "APN 配置影响数据连接",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+CGDCONT",
+        "purpose": "PDP 上下文定义（设置 APN、IP 类型等）",
+        "syntax": "AT+CGDCONT=<cid>[,<pdp_type>[,<apn>[,<pd_addr>[,<d_comp>[,<h_comp>]]]]]",
+        "params": [
+          {
+            "name": "cid",
+            "type": "int",
+            "values": "1-15",
+            "desc": "上下文标识符"
+          },
+          {
+            "name": "pdp_type",
+            "type": "string",
+            "values": "\"IP\",\"IPV6\",\"IPV4V6\"",
+            "desc": "PDP 类型"
+          },
+          {
+            "name": "apn",
+            "type": "string",
+            "values": "APN 名称",
+            "desc": "接入点名称"
+          },
+          {
+            "name": "pd_addr",
+            "type": "string",
+            "values": "IP 地址（通常为空）",
+            "desc": "PDP 地址"
+          },
+          {
+            "name": "d_comp",
+            "type": "int",
+            "values": "0-2",
+            "desc": "数据压缩"
+          },
+          {
+            "name": "h_comp",
+            "type": "int",
+            "values": "0-2",
+            "desc": "头压缩"
+          }
+        ],
+        "example_request": [
+          "AT+CGDCONT=1,\"IP\",\"cmnet\"",
+          "AT+CGDCONT=1,\"IPV4V6\",\"internet\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "需要配合 AT+CGACT 激活才能使用",
+        "danger_level": "low",
+        "recommended_api": "ctrl/pdp",
+        "notes": "PDP 上下文配置的基础命令",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+CGACT",
+        "purpose": "PDP 上下文激活/去激活",
+        "syntax": "AT+CGACT=<state>[,<cid>[,<cid>[,<cid>...]]]",
+        "params": [
+          {
+            "name": "state",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=去激活, 1=激活"
+          },
+          {
+            "name": "cid",
+            "type": "int",
+            "values": "1-15",
+            "desc": "上下文 ID（可多个）"
+          }
+        ],
+        "example_request": [
+          "AT+CGACT=1,1",
+          "AT+CGACT=0,1"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "激活会建立数据连接，去激活会断开连接",
+        "danger_level": "low",
+        "recommended_api": "ctrl/pdp",
+        "notes": "激活后模组会尝试注册并获取 IP",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QCFG=\"apn2\"",
+        "purpose": "第二 APN 配置",
+        "syntax": "AT+QCFG=\"apn2\",<cid>,<apn_name>",
+        "params": [
+          {
+            "name": "cid",
+            "type": "int",
+            "values": "1-15",
+            "desc": "PDP 上下文 ID"
+          },
+          {
+            "name": "apn_name",
+            "type": "string",
+            "values": "APN 名称",
+            "desc": "第二 APN"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"apn2\",2,\"ims\"",
+          "AT+QCFG=\"apn2\",2,\"\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "配置第二 APN 用于 IMS 等特殊服务",
+        "danger_level": "low",
+        "recommended_api": "ctrl/pdp",
+        "notes": "通常用于 IMS/VoLTE",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"pdp/type\"",
+        "purpose": "PDP 类型配置",
+        "syntax": "AT+QCFG=\"pdp/type\",<cid>,<type>",
+        "params": [
+          {
+            "name": "cid",
+            "type": "int",
+            "values": "1-15",
+            "desc": "上下文 ID"
+          },
+          {
+            "name": "type",
+            "type": "string",
+            "values": "\"IP\",\"IPV6\",\"IPV4V6\"",
+            "desc": "PDP 类型"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"pdp/type\",1,\"IPV4V6\"",
+          "AT+QCFG=\"pdp/type\",1,\"IP\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "改变 PDP 类型需要重新激活上下文",
+        "danger_level": "low",
+        "recommended_api": "ctrl/pdp",
+        "notes": "IPv6 需要网络支持",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"pdp/auth\"",
+        "purpose": "PDP 认证配置",
+        "syntax": "AT+QCFG=\"pdp/auth\",<cid>,<auth_type>,<username>,<password>",
+        "params": [
+          {
+            "name": "cid",
+            "type": "int",
+            "values": "1-15",
+            "desc": "上下文 ID"
+          },
+          {
+            "name": "auth_type",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=无, 1=PAP, 2=CHAP"
+          },
+          {
+            "name": "username",
+            "type": "string",
+            "values": "用户名",
+            "desc": "认证用户名"
+          },
+          {
+            "name": "password",
+            "type": "string",
+            "values": "密码",
+            "desc": "认证密码"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"pdp/auth\",1,1,\"user\",\"pass\"",
+          "AT+QCFG=\"pdp/auth\",1,0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "配置认证信息用于特殊 APN",
+        "danger_level": "low",
+        "recommended_api": "ctrl/pdp",
+        "notes": "某些企业 APN 需要认证",
+        "priority": "Low"
+      }
+    ],
+    "ctrl/file": [
+      {
+        "cmd": "AT+QFLST",
+        "purpose": "文件列表（列出模组内文件）",
+        "syntax": "AT+QFLST=<path>",
+        "params": [
+          {
+            "name": "path",
+            "type": "string",
+            "values": "文件路径，如\"/\"",
+            "desc": "要列出的目录路径"
+          }
+        ],
+        "example_request": [
+          "AT+QFLST=\"/\"",
+          "AT+QFLST=\"/cert\""
+        ],
+        "example_response": [
+          "+QFLST: ...",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "无",
+        "danger_level": "low",
+        "recommended_api": "ctrl/file",
+        "notes": "查询类，但可能用于文件管理流程",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QFDEL",
+        "purpose": "文件删除（删除模组内文件）",
+        "syntax": "AT+QFDEL=<path>",
+        "params": [
+          {
+            "name": "path",
+            "type": "string",
+            "values": "文件路径",
+            "desc": "要删除的文件路径"
+          }
+        ],
+        "example_request": [
+          "AT+QFDEL=\"/cert/ca.pem\"",
+          "AT+QFDEL=\"/config.txt\""
+        ],
+        "example_response": [
+          "OK",
+          "+CME ERROR: 2"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": null,
+        "side_effects": "删除文件不可恢复",
+        "danger_level": "high",
+        "recommended_api": "ctrl/file",
+        "notes": "删除系统文件可能导致功能异常",
+        "priority": "High"
+      }
+    ],
+    "ctrl/firmware": [
+      {
+        "cmd": "AT+QFWUPD",
+        "purpose": "固件更新（通过文件或 URL）",
+        "syntax": "AT+QFWUPD=<mode>,<source>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=从文件, 1=从 URL"
+          },
+          {
+            "name": "source",
+            "type": "string",
+            "values": "文件路径或 URL",
+            "desc": "固件源"
+          }
+        ],
+        "example_request": [
+          "AT+QFWUPD=0,\"/firmware.bin\"",
+          "AT+QFWUPD=1,\"http://...\""
+        ],
+        "example_response": [
+          "OK",
+          "+CME ERROR: 100"
+        ],
+        "blocking": true,
+        "time_to_effect_seconds": 300,
+        "side_effects": "更新过程中模组会重启，更新失败可能导致变砖",
+        "danger_level": "high",
+        "recommended_api": "ctrl/firmware",
+        "notes": "固件更新风险极高，需确保电源稳定",
+        "priority": "High"
+      }
+    ],
+    "ctrl/reset": [
+      {
+        "cmd": "AT+QCFG=\"reset\"",
+        "purpose": "恢复出厂设置（重置所有配置）",
+        "syntax": "AT+QCFG=\"reset\"",
+        "params": [],
+        "example_request": [
+          "AT+QCFG=\"reset\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": true,
+        "time_to_effect_seconds": 10,
+        "side_effects": "所有配置恢复默认值，模组会重启",
+        "danger_level": "high",
+        "recommended_api": "ctrl/reset",
+        "notes": "危险操作，会清除所有自定义配置",
+        "priority": "High"
+      },
+      {
+        "cmd": "AT+QCFG=\"factory\"",
+        "purpose": "恢复出厂设置（完整重置）",
+        "syntax": "AT+QCFG=\"factory\"",
+        "params": [],
+        "example_request": [
+          "AT+QCFG=\"factory\""
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": true,
+        "time_to_effect_seconds": 30,
+        "side_effects": "完全恢复出厂状态，包括文件系统，模组会重启",
+        "danger_level": "high",
+        "recommended_api": "ctrl/reset",
+        "notes": "极高危险操作，所有数据会丢失",
+        "priority": "High"
+      }
+    ],
+    "ctrl/gpio": [
+      {
+        "cmd": "AT+QCFG=\"gpio\"",
+        "purpose": "GPIO 配置（引脚功能设置）",
+        "syntax": "AT+QCFG=\"gpio\",<pin>,<mode>,<value>",
+        "params": [
+          {
+            "name": "pin",
+            "type": "int",
+            "values": "引脚编号",
+            "desc": "GPIO 引脚号"
+          },
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=输入, 1=输出"
+          },
+          {
+            "name": "value",
+            "type": "int",
+            "values": "0-1",
+            "desc": "输出值（输出模式）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"gpio\",1,1,1",
+          "AT+QCFG=\"gpio\",1,0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 0,
+        "side_effects": "配置硬件 GPIO 引脚",
+        "danger_level": "low",
+        "recommended_api": "ctrl/gpio",
+        "notes": "硬件相关配置",
+        "priority": "Low"
+      }
+    ],
+    "ctrl/radio": [
+      {
+        "cmd": "AT+QCFG=\"txpower\"",
+        "purpose": "发射功率配置",
+        "syntax": "AT+QCFG=\"txpower\",<power>",
+        "params": [
+          {
+            "name": "power",
+            "type": "int",
+            "values": "功率等级",
+            "desc": "发射功率等级"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"txpower\",23",
+          "AT+QCFG=\"txpower\",26"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "改变发射功率可能影响信号质量和法规合规",
+        "danger_level": "high",
+        "recommended_api": "ctrl/radio",
+        "notes": "超出法规限制可能导致违法",
+        "priority": "High"
+      },
+      {
+        "cmd": "AT+QCFG=\"rrc\"",
+        "purpose": "RRC 配置（无线资源控制）",
+        "syntax": "AT+QCFG=\"rrc\",<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=自动, 1=强制连接"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"rrc\",1",
+          "AT+QCFG=\"rrc\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "强制连接会增加功耗",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "RRC 连接状态控制",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"ca\"",
+        "purpose": "载波聚合配置",
+        "syntax": "AT+QCFG=\"ca\"[=<enable>]",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用 CA, 1=启用（设置时必需，查询时省略）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"ca\"",
+          "AT+QCFG=\"ca\",1",
+          "AT+QCFG=\"ca\",0"
+        ],
+        "example_response": [
+          "+QCFG: \"ca\",1",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 10,
+        "side_effects": "禁用 CA 可能降低数据速率",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "载波聚合功能开关。不带参数时查询当前状态，带参数时设置状态。",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"mimo\"",
+        "purpose": "MIMO 配置",
+        "syntax": "AT+QCFG=\"mimo\",<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=自动, 1=2x2, 2=4x4"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"mimo\",1",
+          "AT+QCFG=\"mimo\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "MIMO 模式影响天线使用",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "需要硬件支持多天线",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"antenna\"",
+        "purpose": "天线选择配置",
+        "syntax": "AT+QCFG=\"antenna\",<antenna>",
+        "params": [
+          {
+            "name": "antenna",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=自动, 1=主天线, 2=辅天线"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"antenna\",1",
+          "AT+QCFG=\"antenna\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "选择特定天线可能影响信号",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "硬件天线选择",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"sar\"",
+        "purpose": "SAR 配置（比吸收率限制）",
+        "syntax": "AT+QCFG=\"sar\",<level>",
+        "params": [
+          {
+            "name": "level",
+            "type": "int",
+            "values": "0-2",
+            "desc": "SAR 限制等级"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"sar\",1",
+          "AT+QCFG=\"sar\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "SAR 限制影响发射功率",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/radio",
+        "notes": "法规相关配置",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/ca\"",
+        "purpose": "LTE 载波聚合配置",
+        "syntax": "AT+QCFG=\"lte/ca\"[=<enable>]",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用 LTE CA（设置时必需，查询时省略）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/ca\"",
+          "AT+QCFG=\"lte/ca\",1",
+          "AT+QCFG=\"lte/ca\",0"
+        ],
+        "example_response": [
+          "+QCFG: \"lte/ca\",1",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "启用 LTE 载波聚合",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "LTE CA 功能开关。不带参数时查询当前状态，带参数时设置状态。",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/ca\"",
+        "purpose": "5G 载波聚合配置",
+        "syntax": "AT+QCFG=\"nr5g/ca\"[=<enable>]",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用 5G CA（设置时必需，查询时省略）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/ca\"",
+          "AT+QCFG=\"nr5g/ca\",1",
+          "AT+QCFG=\"nr5g/ca\",0"
+        ],
+        "example_response": [
+          "+QCFG: \"nr5g/ca\",1",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "启用 5G 载波聚合",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G CA 功能开关。不带参数时查询当前状态，带参数时设置状态。",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/ulca\"",
+        "purpose": "LTE 上行载波聚合配置",
+        "syntax": "AT+QCFG=\"lte/ulca\"[=<enable>]",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用上行 CA（设置时必需，查询时省略）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/ulca\"",
+          "AT+QCFG=\"lte/ulca\",1",
+          "AT+QCFG=\"lte/ulca\",0"
+        ],
+        "example_response": [
+          "+QCFG: \"lte/ulca\",1",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "启用 LTE 上行载波聚合",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "上行 CA 功能。不带参数时查询当前状态，带参数时设置状态。",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/ulca\"",
+        "purpose": "5G 上行载波聚合配置",
+        "syntax": "AT+QCFG=\"nr5g/ulca\"[=<enable>]",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用上行 CA（设置时必需，查询时省略）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/ulca\"",
+          "AT+QCFG=\"nr5g/ulca\",1",
+          "AT+QCFG=\"nr5g/ulca\",0"
+        ],
+        "example_response": [
+          "+QCFG: \"nr5g/ulca\",1",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "启用 5G 上行载波聚合",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G 上行 CA 功能。不带参数时查询当前状态，带参数时设置状态。",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/dlca\"",
+        "purpose": "LTE 下行载波聚合配置",
+        "syntax": "AT+QCFG=\"lte/dlca\"[=<enable>]",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用下行 CA（设置时必需，查询时省略）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/dlca\"",
+          "AT+QCFG=\"lte/dlca\",1",
+          "AT+QCFG=\"lte/dlca\",0"
+        ],
+        "example_response": [
+          "+QCFG: \"lte/dlca\",1",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "启用 LTE 下行载波聚合",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "下行 CA 功能。不带参数时查询当前状态，带参数时设置状态。",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/dlca\"",
+        "purpose": "5G 下行载波聚合配置",
+        "syntax": "AT+QCFG=\"nr5g/dlca\"[=<enable>]",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用下行 CA（设置时必需，查询时省略）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/dlca\"",
+          "AT+QCFG=\"nr5g/dlca\",1",
+          "AT+QCFG=\"nr5g/dlca\",0"
+        ],
+        "example_response": [
+          "+QCFG: \"nr5g/dlca\",1",
+          "OK",
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "启用 5G 下行载波聚合",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G 下行 CA 功能。不带参数时查询当前状态，带参数时设置状态。",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/bandwidth\"",
+        "purpose": "LTE 带宽配置",
+        "syntax": "AT+QCFG=\"lte/bandwidth\",<bw>",
+        "params": [
+          {
+            "name": "bw",
+            "type": "int",
+            "values": "1.4,3,5,10,15,20",
+            "desc": "带宽（MHz）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/bandwidth\",20",
+          "AT+QCFG=\"lte/bandwidth\",10"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "限制 LTE 带宽使用",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "带宽限制配置",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/bandwidth\"",
+        "purpose": "5G 带宽配置",
+        "syntax": "AT+QCFG=\"nr5g/bandwidth\",<bw>",
+        "params": [
+          {
+            "name": "bw",
+            "type": "int",
+            "values": "5,10,15,20,25,30,40,50,60,80,100",
+            "desc": "带宽（MHz）"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/bandwidth\",100",
+          "AT+QCFG=\"nr5g/bandwidth\",20"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "限制 5G 带宽使用",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G 带宽限制",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/txpower\"",
+        "purpose": "LTE 发射功率配置",
+        "syntax": "AT+QCFG=\"lte/txpower\",<power>",
+        "params": [
+          {
+            "name": "power",
+            "type": "int",
+            "values": "功率等级",
+            "desc": "LTE 发射功率"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/txpower\",23",
+          "AT+QCFG=\"lte/txpower\",26"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "改变 LTE 发射功率",
+        "danger_level": "high",
+        "recommended_api": "ctrl/radio",
+        "notes": "法规限制相关",
+        "priority": "High"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/txpower\"",
+        "purpose": "5G 发射功率配置",
+        "syntax": "AT+QCFG=\"nr5g/txpower\",<power>",
+        "params": [
+          {
+            "name": "power",
+            "type": "int",
+            "values": "功率等级",
+            "desc": "5G 发射功率"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/txpower\",23",
+          "AT+QCFG=\"nr5g/txpower\",26"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "改变 5G 发射功率",
+        "danger_level": "high",
+        "recommended_api": "ctrl/radio",
+        "notes": "法规限制相关",
+        "priority": "High"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/mimo\"",
+        "purpose": "LTE MIMO 配置",
+        "syntax": "AT+QCFG=\"lte/mimo\",<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=自动, 1=2x2, 2=4x4"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/mimo\",1",
+          "AT+QCFG=\"lte/mimo\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "LTE MIMO 模式配置",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "LTE MIMO 功能",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/mimo\"",
+        "purpose": "5G MIMO 配置",
+        "syntax": "AT+QCFG=\"nr5g/mimo\",<mode>",
+        "params": [
+          {
+            "name": "mode",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=自动, 1=2x2, 2=4x4"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/mimo\",1",
+          "AT+QCFG=\"nr5g/mimo\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "5G MIMO 模式配置",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G MIMO 功能",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/antenna\"",
+        "purpose": "LTE 天线选择",
+        "syntax": "AT+QCFG=\"lte/antenna\",<antenna>",
+        "params": [
+          {
+            "name": "antenna",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=自动, 1=主, 2=辅"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/antenna\",1",
+          "AT+QCFG=\"lte/antenna\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "LTE 天线选择",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "LTE 天线配置",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/antenna\"",
+        "purpose": "5G 天线选择",
+        "syntax": "AT+QCFG=\"nr5g/antenna\",<antenna>",
+        "params": [
+          {
+            "name": "antenna",
+            "type": "int",
+            "values": "0-2",
+            "desc": "0=自动, 1=主, 2=辅"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/antenna\",1",
+          "AT+QCFG=\"nr5g/antenna\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 1,
+        "side_effects": "5G 天线选择",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G 天线配置",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/qrxlevmin\"",
+        "purpose": "LTE 最小接收电平配置",
+        "syntax": "AT+QCFG=\"lte/qrxlevmin\",<value>",
+        "params": [
+          {
+            "name": "value",
+            "type": "int",
+            "values": "dBm 值",
+            "desc": "最小接收电平阈值"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/qrxlevmin\",-120",
+          "AT+QCFG=\"lte/qrxlevmin\",-140"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "影响小区选择和重选",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "接收灵敏度配置",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/qrxlevmin\"",
+        "purpose": "5G 最小接收电平配置",
+        "syntax": "AT+QCFG=\"nr5g/qrxlevmin\",<value>",
+        "params": [
+          {
+            "name": "value",
+            "type": "int",
+            "values": "dBm 值",
+            "desc": "最小接收电平阈值"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/qrxlevmin\",-120",
+          "AT+QCFG=\"nr5g/qrxlevmin\",-140"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "影响 5G 小区选择",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G 接收灵敏度",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/cellreselection\"",
+        "purpose": "LTE 小区重选配置",
+        "syntax": "AT+QCFG=\"lte/cellreselection\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用自动重选"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/cellreselection\",1",
+          "AT+QCFG=\"lte/cellreselection\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "禁用后不会自动切换小区",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "小区重选功能",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/cellreselection\"",
+        "purpose": "5G 小区重选配置",
+        "syntax": "AT+QCFG=\"nr5g/cellreselection\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用自动重选"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/cellreselection\",1",
+          "AT+QCFG=\"nr5g/cellreselection\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "禁用后不会自动切换 5G 小区",
+        "danger_level": "low",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G 小区重选",
+        "priority": "Low"
+      },
+      {
+        "cmd": "AT+QCFG=\"lte/handover\"",
+        "purpose": "LTE 切换配置",
+        "syntax": "AT+QCFG=\"lte/handover\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用切换"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"lte/handover\",1",
+          "AT+QCFG=\"lte/handover\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "禁用切换可能导致连接中断",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/radio",
+        "notes": "切换功能控制",
+        "priority": "Medium"
+      },
+      {
+        "cmd": "AT+QCFG=\"nr5g/handover\"",
+        "purpose": "5G 切换配置",
+        "syntax": "AT+QCFG=\"nr5g/handover\",<enable>",
+        "params": [
+          {
+            "name": "enable",
+            "type": "int",
+            "values": "0-1",
+            "desc": "0=禁用, 1=启用切换"
+          }
+        ],
+        "example_request": [
+          "AT+QCFG=\"nr5g/handover\",1",
+          "AT+QCFG=\"nr5g/handover\",0"
+        ],
+        "example_response": [
+          "OK"
+        ],
+        "blocking": false,
+        "time_to_effect_seconds": 5,
+        "side_effects": "禁用切换可能导致连接中断",
+        "danger_level": "medium",
+        "recommended_api": "ctrl/radio",
+        "notes": "5G 切换功能",
+        "priority": "Medium"
+      }
+    ]
+  },
+  "priority_summary": {
+    "High": [
+      "AT+CFUN",
+      "AT+QPOWD",
+      "AT+QNWLOCK",
+      "AT+QFDEL",
+      "AT+QFWUPD",
+      "AT+QCFG=\"reset\"",
+      "AT+QCFG=\"factory\"",
+      "AT+QCFG=\"imei\"",
+      "AT+QCFG=\"thermal\"",
+      "AT+QCFG=\"txpower\"",
+      "AT+QCFG=\"lte/txpower\"",
+      "AT+QCFG=\"nr5g/txpower\""
+    ],
+    "Medium": [
+      "AT+QCFG=\"band\"",
+      "AT+QCFG=\"iotopmode\"",
+      "AT+CGACT",
+      "AT+QCFG=\"psm\"",
+      "AT+QCFG=\"rat\"",
+      "AT+QCFG=\"uart\"",
+      "AT+QCFG=\"sar\"",
+      "AT+QCFG=\"lte/band\"",
+      "AT+QCFG=\"nr5g/band\"",
+      "AT+QCFG=\"lte/handover\"",
+      "AT+QCFG=\"nr5g/handover\""
+    ],
+    "Low": [
+      "AT+QSCLK",
+      "AT+QCFG=\"usbspeed\"",
+      "AT+QCFG=\"usbnet\"",
+      "AT+QCFG=\"nwscanseq\"",
+      "AT+QCFG=\"nwscanmode\"",
+      "AT+QCFG=\"roamservice\"",
+      "AT+QCFG=\"apn\"",
+      "AT+CGDCONT",
+      "AT+QPRTPARA",
+      "AT+QFLST",
+      "AT+QCFG=\"autocell\"",
+      "AT+QCFG=\"edrx\"",
+      "AT+QCFG=\"servicetype\"",
+      "AT+QCFG=\"ims\"",
+      "AT+QCFG=\"urc/cellind\"",
+      "AT+QCFG=\"urc/ri\"",
+      "AT+QCFG=\"gnss\"",
+      "AT+QCFG=\"fastboot\"",
+      "AT+QCFG=\"data_roaming\"",
+      "AT+QCFG=\"volte\"",
+      "AT+QCFG=\"vonr\"",
+      "AT+QCFG=\"apn2\"",
+      "AT+QCFG=\"pdp/type\"",
+      "AT+QCFG=\"pdp/auth\"",
+      "AT+QCFG=\"sim\"",
+      "AT+QCFG=\"gpio\"",
+      "AT+QCFG=\"pcm\"",
+      "AT+QCFG=\"netlight\"",
+      "AT+QCFG=\"lowpower\"",
+      "AT+QCFG=\"rrc\"",
+      "AT+QCFG=\"ca\"",
+      "AT+QCFG=\"mimo\"",
+      "AT+QCFG=\"antenna\"",
+      "AT+QCFG=\"lte/ca\"",
+      "AT+QCFG=\"nr5g/ca\"",
+      "AT+QCFG=\"lte/ulca\"",
+      "AT+QCFG=\"nr5g/ulca\"",
+      "AT+QCFG=\"lte/dlca\"",
+      "AT+QCFG=\"nr5g/dlca\"",
+      "AT+QCFG=\"lte/bandwidth\"",
+      "AT+QCFG=\"nr5g/bandwidth\"",
+      "AT+QCFG=\"lte/mimo\"",
+      "AT+QCFG=\"nr5g/mimo\"",
+      "AT+QCFG=\"lte/antenna\"",
+      "AT+QCFG=\"nr5g/antenna\"",
+      "AT+QCFG=\"lte/qrxlevmin\"",
+      "AT+QCFG=\"nr5g/qrxlevmin\"",
+      "AT+QCFG=\"lte/cellreselection\"",
+      "AT+QCFG=\"nr5g/cellreselection\""
+    ]
+  }
+}
